@@ -1,0 +1,22 @@
+abstract final class RouteNames {
+  static const home = '/home';
+  static const dashboard = '/dashboard';
+  static const accountMaster = '/account-master';
+  static const itemMaster = '/item-master';
+  static const cashBank = '/cash-bank';
+  static const jobWork = '/job-work';
+  static const transactions = '/transactions';
+  static const financialReports = '/financial-reports';
+  static const utilities = '/utilities';
+  static const backupRestore = '/backup-restore';
+  static const settings = '/settings';
+  static const sales = '/sales';
+  static const purchase = '/purchase';
+  static const companyProfile = '/company-profile';
+  static const addParty = '/account-master/add-party';
+  static const findParty = '/account-master/find-party';
+  static const cashReceive = '/cash-bank/cash-receive';
+  static const cashPayment = '/cash-bank/cash-payment';
+  static const bankReceive = '/cash-bank/bank-receive';
+  static const bankPayment = '/cash-bank/bank-payment';
+}
