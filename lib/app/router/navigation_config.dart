@@ -81,52 +81,230 @@ abstract final class NavigationConfig {
   ];
 
   static const topMenu = [
-    AppMenuItem(title: 'User', route: RouteNames.dashboard),
+    AppMenuItem(
+      title: 'User',
+      children: [
+        AppMenuItem(title: 'New User'),
+        AppMenuItem(title: 'Edit User'),
+        AppMenuItem(title: 'Change Password'),
+        AppMenuItem(title: 'Firm Select'),
+        AppMenuItem(title: 'Year Select'),
+        AppMenuItem(title: 'Calculator'),
+        AppMenuItem(title: 'Exit'),
+      ],
+    ),
     AppMenuItem(
       title: 'Master',
       children: [
-        AppMenuItem(
-          title: 'Account Master',
-          route: RouteNames.accountMaster,
-          children: [
-            AppMenuItem(title: 'Add Party', route: RouteNames.addParty),
-            AppMenuItem(title: 'Find out party', route: RouteNames.findParty),
-          ],
-        ),
-        AppMenuItem(title: 'Item Master', route: RouteNames.itemMaster),
+        AppMenuItem(title: 'Account Master'),
+        AppMenuItem(title: 'Item Master'),
+        AppMenuItem(title: 'Broker'),
+        AppMenuItem(title: 'Transport'),
+        AppMenuItem(title: 'Party Wise Print'),
+        AppMenuItem(title: 'Change HSN/GST Rate – All Items'),
+        AppMenuItem(title: 'Send Mail'),
       ],
     ),
     AppMenuItem(
       title: 'Transaction',
       children: [
-        AppMenuItem(title: 'Sales', route: RouteNames.sales),
-        AppMenuItem(title: 'Purchase', route: RouteNames.purchase),
+        AppMenuItem(
+          title: 'Sales',
+          children: [
+            AppMenuItem(title: 'Sales'),
+            AppMenuItem(title: 'Sales Return'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Purchase',
+          children: [
+            AppMenuItem(title: 'Purchase'),
+            AppMenuItem(title: 'Purchase Return'),
+            AppMenuItem(title: 'General Expenses'),
+          ],
+        ),
+        AppMenuItem(title: 'Credit Note'),
+        AppMenuItem(title: 'Debit Note'),
+        AppMenuItem(title: 'Opening Balance'),
       ],
     ),
     AppMenuItem(
       title: 'Cash & Bank',
       children: [
+        AppMenuItem(title: 'Cash Payment'),
+        AppMenuItem(title: 'Cash Receipt'),
         AppMenuItem(
-          title: 'Cash (Payment / Receive)',
+          title: 'Bank Cheque Payment',
           children: [
-            AppMenuItem(title: 'Cash Receive', route: RouteNames.cashReceive),
-            AppMenuItem(title: 'Cash Payment', route: RouteNames.cashPayment),
+            AppMenuItem(title: 'Cheque'),
+            AppMenuItem(title: 'Cheque Return'),
           ],
         ),
         AppMenuItem(
-          title: 'Bank (Payment / Receive)',
+          title: 'Bank Slip Receipt',
           children: [
-            AppMenuItem(title: 'Bank Receive', route: RouteNames.bankReceive),
-            AppMenuItem(title: 'Bank Payment', route: RouteNames.bankPayment),
+            AppMenuItem(title: 'Cheque'),
+            AppMenuItem(title: 'Cheque Return'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Journal Entry',
+          children: [
+            AppMenuItem(title: 'Bill Base'),
+            AppMenuItem(title: 'General'),
+          ],
+        ),
+        AppMenuItem(title: 'Bank Reconciliation'),
+        AppMenuItem(title: 'Exit'),
+      ],
+    ),
+    AppMenuItem(
+      title: 'Reports',
+      children: [
+        AppMenuItem(
+          title: 'Stock',
+          children: [
+            AppMenuItem(title: 'Register Summary'),
+            AppMenuItem(title: 'Statement'),
+            AppMenuItem(title: 'Register'),
+            AppMenuItem(title: 'Register – GroupWise'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Register',
+          children: [
+            AppMenuItem(title: 'Bank Book'),
+            AppMenuItem(title: 'Cash Book'),
+            AppMenuItem(title: 'Journal Book'),
+            AppMenuItem(title: 'Day Book'),
+            AppMenuItem(title: 'General Expenses'),
+            AppMenuItem(title: 'Cash & Bank Voucher Point'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Purchase',
+          children: [
+            AppMenuItem(title: 'Bill Wise Summary'),
+            AppMenuItem(title: 'Bill Wise Register'),
+            AppMenuItem(title: 'Item Wise Summary'),
+            AppMenuItem(title: 'Monthly Summary'),
+            AppMenuItem(title: 'Purchase TDS Summary'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Sales',
+          children: [
+            AppMenuItem(title: 'Bill Wise Summary'),
+            AppMenuItem(title: 'Bill Wise Register'),
+            AppMenuItem(title: 'Item Wise Summary'),
+            AppMenuItem(title: 'Monthly Summary'),
+            AppMenuItem(title: 'Sales TDS Summary'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'Outstanding',
+          children: [
+            AppMenuItem(title: 'Sales Party Wise'),
+            AppMenuItem(title: 'Sales Broker Wise'),
+            AppMenuItem(title: 'Sales Bill Wise Details'),
+            AppMenuItem(title: 'Purchase Party Wise'),
+            AppMenuItem(title: 'Purchase Broker Wise'),
+            AppMenuItem(title: 'Purchase Bill Wise Detail'),
+            AppMenuItem(title: 'Aging Outstanding Report'),
+            AppMenuItem(title: 'Sales – Purchase Interest Calculation'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'GST Details Register',
+          children: [
+            AppMenuItem(title: 'Sales'),
+            AppMenuItem(title: 'Purchase'),
+            AppMenuItem(title: 'Credit/Debit Note'),
+            AppMenuItem(title: 'Credit/Debit Note { All Tax }'),
+          ],
+        ),
+        AppMenuItem(
+          title: 'GST File Register',
+          children: [
+            AppMenuItem(title: 'GSTR-1'),
+            AppMenuItem(title: 'GSTR-2 / 2A'),
+            AppMenuItem(title: 'GSTR-3B'),
+            AppMenuItem(title: 'GSTR-9'),
+            AppMenuItem(title: 'GST Audit'),
+            AppMenuItem(title: 'Book Wise Details'),
+            AppMenuItem(title: 'GST Lock'),
           ],
         ),
       ],
     ),
-    AppMenuItem(title: 'Reports', route: RouteNames.financialReports),
-    AppMenuItem(title: 'Financial Report', route: RouteNames.financialReports),
-    AppMenuItem(title: 'Job Work', route: RouteNames.jobWork),
-    AppMenuItem(title: 'Inventory', route: RouteNames.itemMaster),
-    AppMenuItem(title: 'Utility', route: RouteNames.utilities),
-    AppMenuItem(title: 'Auto Update', route: RouteNames.settings),
+    AppMenuItem(
+      title: 'Financial Report',
+      children: [
+        AppMenuItem(title: 'Ledger'),
+        AppMenuItem(title: 'Ledger (Challan Base)'),
+        AppMenuItem(title: 'Trial Balance'),
+        AppMenuItem(title: 'Trading Account'),
+        AppMenuItem(title: 'Profit and Loss'),
+        AppMenuItem(title: 'Balance Sheet'),
+        AppMenuItem(title: 'Balance Sheet (Schedule)'),
+        AppMenuItem(title: 'Trial Balance Detail'),
+        AppMenuItem(title: 'Ledger (Multi)'),
+        AppMenuItem(title: 'Payable/Receivable'),
+        AppMenuItem(title: 'Bank Slip Print'),
+        AppMenuItem(title: 'Interest Calculation'),
+        AppMenuItem(title: 'TDS Head Wise Print'),
+      ],
+    ),
+    AppMenuItem(
+      title: 'Job Work',
+      children: [
+        AppMenuItem(title: 'Issue (Work Dispatch)'),
+        AppMenuItem(title: 'Receive (Work Receive)'),
+        AppMenuItem(title: 'Job Process Receive (Inward Challan)'),
+        AppMenuItem(title: 'Job Process Issue (Outward Challan)'),
+        AppMenuItem(title: 'Jobwork Receive (Inward)'),
+        AppMenuItem(title: 'Jobwork Issue (Outward)'),
+        AppMenuItem(title: 'Register'),
+      ],
+    ),
+    AppMenuItem(
+      title: 'Inventory',
+      children: [
+        AppMenuItem(title: 'Stock Issue'),
+        AppMenuItem(title: 'Stock Receive'),
+        AppMenuItem(
+          title: 'Stock Register',
+          children: [
+            AppMenuItem(title: 'Issue'),
+            AppMenuItem(title: 'Receive'),
+          ],
+        ),
+        AppMenuItem(title: 'Godown Issue'),
+        AppMenuItem(title: 'Godown Receive'),
+        AppMenuItem(
+          title: 'Godown Register',
+          children: [
+            AppMenuItem(title: 'Issue'),
+            AppMenuItem(title: 'Receive'),
+          ],
+        ),
+      ],
+    ),
+    AppMenuItem(
+      title: 'Utility',
+      children: [
+        AppMenuItem(title: 'Company Profile'),
+        AppMenuItem(title: 'Book Create'),
+        AppMenuItem(title: 'Other Utility'),
+        AppMenuItem(title: 'Outstanding Add (Last Year)'),
+        AppMenuItem(title: 'Delete Last Year Bill'),
+        AppMenuItem(title: 'Year'),
+        AppMenuItem(title: 'Send Backup by Email'),
+      ],
+    ),
+    AppMenuItem(
+      title: 'Auto Update',
+      children: [AppMenuItem(title: 'Auto Update')],
+    ),
   ];
 }

@@ -57,144 +57,83 @@ class _InformationBar extends StatelessWidget {
   }
 }
 
-class _TopMenu extends StatefulWidget {
+class _TopMenu extends StatelessWidget {
   const _TopMenu({required this.title});
   final String title;
 
   @override
-  State<_TopMenu> createState() => _TopMenuState();
-}
-
-class _TopMenuState extends State<_TopMenu> {
-  String? _openMenu;
-  String? _hoveredItem;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(
-      color: AppColors.header,
-      border: Border.all(color: AppColors.border),
-    ),
-    child: Column(
-      children: [
-        SizedBox(
-          height: 31,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.zero,
-            child: Row(
-              children: NavigationConfig.topMenu
-                  .map((item) => _menuButton(item))
-                  .toList(),
-            ),
-          ),
-        ),
-        if (_openMenu != null) _dropdownFor(_openMenu!),
-      ],
-    ),
-  );
-
-  Widget _menuButton(AppMenuItem item) {
-    final active = item.title == widget.title || _openMenu == item.title;
-    return InkWell(
-      onTap: () {
-        if (item.children.isNotEmpty) {
-          setState(() {
-            _openMenu = _openMenu == item.title ? null : item.title;
-            _hoveredItem = null;
-          });
-          return;
-        }
-        _navigate(item.route);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        alignment: Alignment.center,
-        color: active ? AppColors.sidebarActive : null,
-        child: Text(
-          item.title,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
+  Widget build(BuildContext context) {
+    return Container(
+      height: 31,
+      decoration: BoxDecoration(
+        color: AppColors.header,
+        border: Border.all(color: AppColors.border),
       ),
-    );
-  }
-
-  Widget _dropdownFor(String title) {
-    final menu = NavigationConfig.topMenu.firstWhere(
-      (item) => item.title == title,
-    );
-    return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        constraints: const BoxConstraints(minWidth: 210, maxWidth: 360),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border)),
+      child: MenuBar(
+        style: const MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(AppColors.header),
+          padding: WidgetStatePropertyAll(EdgeInsets.zero),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: menu.children.map(_dropdownItem).toList(),
-              ),
-            ),
-            if (_hoveredItem != null)
-              Flexible(child: _nestedDropdown(menu.children.firstWhere((item) => item.title == _hoveredItem))),
-          ],
-        ),
+        children: NavigationConfig.topMenu
+            .map((item) => _buildMenuItem(context, item))
+            .toList(),
       ),
     );
   }
 
-  Widget _dropdownItem(AppMenuItem item) => MouseRegion(
-    onEnter: (_) => item.children.isNotEmpty
-        ? setState(() => _hoveredItem = item.title)
-        : null,
-    child: InkWell(
-      onTap: () => item.children.isEmpty
-          ? _navigate(item.route)
-          : setState(() => _hoveredItem = item.title),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: _hoveredItem == item.title ? AppColors.sidebarActive : null,
-          border: const Border(bottom: BorderSide(color: AppColors.divider)),
-        ),
-        child: Row(
-          children: [
-            Expanded(child: Text(item.title, style: const TextStyle(fontSize: 12))),
-            if (item.children.isNotEmpty) const Icon(Icons.chevron_right, size: 16),
-          ],
-        ),
+  Widget _buildMenuItem(BuildContext context, AppMenuItem item) {
+    final label = Text(
+      item.title,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
       ),
-    ),
-  );
+    );
 
-  Widget _nestedDropdown(AppMenuItem item) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: item.children.map((child) => InkWell(
-      onTap: () => _navigate(child.route),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.divider)),
-        ),
-        child: Text(child.title, style: const TextStyle(fontSize: 12)),
-      ),
-    )).toList(),
-  );
+    if (item.children.isEmpty) {
+      return MenuItemButton(
+        onPressed: () {
+          if (item.route != null) {
+            Navigator.pushReplacementNamed(context, item.route!);
+          }
+        },
+        child: label,
+      );
+    }
 
-  void _navigate(String? route) {
-    if (route == null) return;
-    setState(() {
-      _openMenu = null;
-      _hoveredItem = null;
-    });
-    Navigator.pushReplacementNamed(context, route);
+    return SubmenuButton(
+      menuChildren: item.children
+          .map((child) => _buildNestedMenuItem(context, child))
+          .toList(),
+      child: label,
+    );
+  }
+
+  Widget _buildNestedMenuItem(BuildContext context, AppMenuItem item) {
+    final label = Text(
+      item.title,
+      style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+    );
+
+    if (item.children.isEmpty) {
+      return MenuItemButton(
+        onPressed: () {
+          if (item.route != null) {
+            Navigator.pushReplacementNamed(context, item.route!);
+          }
+        },
+        child: label,
+      );
+    }
+
+    return SubmenuButton(
+      menuChildren: item.children
+          .map((child) => _buildNestedMenuItem(context, child))
+          .toList(),
+      child: label,
+    );
   }
 }
 
@@ -273,7 +212,10 @@ class AppLeftNavigation extends StatelessWidget {
                   size: 22,
                   color: AppColors.primary,
                 ),
-                Text('Hide', style: TextStyle(fontSize: 11)),
+                Text(
+                  'Hide',
+                  style: TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                ),
               ],
             ),
           ),
