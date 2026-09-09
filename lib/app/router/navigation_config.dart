@@ -96,8 +96,8 @@ abstract final class NavigationConfig {
     AppMenuItem(
       title: 'Master',
       children: [
-        AppMenuItem(title: 'Account Master'),
-        AppMenuItem(title: 'Item Master'),
+        AppMenuItem(title: 'Account Master', route: RouteNames.accountMaster),
+        AppMenuItem(title: 'Item Master', route: RouteNames.itemMaster),
         AppMenuItem(title: 'Broker'),
         AppMenuItem(title: 'Transport'),
         AppMenuItem(title: 'Party Wise Print'),
@@ -123,29 +123,21 @@ abstract final class NavigationConfig {
             AppMenuItem(title: 'General Expenses'),
           ],
         ),
-        AppMenuItem(title: 'Credit Note'),
-        AppMenuItem(title: 'Debit Note'),
+        AppMenuItem(title: 'Credit Note', route: RouteNames.creditNote),
+        AppMenuItem(title: 'Debit Note', route: RouteNames.debitNote),
         AppMenuItem(title: 'Opening Balance'),
       ],
     ),
     AppMenuItem(
       title: 'Cash & Bank',
       children: [
-        AppMenuItem(title: 'Cash Payment'),
-        AppMenuItem(title: 'Cash Receipt'),
         AppMenuItem(
-          title: 'Bank Cheque Payment',
-          children: [
-            AppMenuItem(title: 'Cheque'),
-            AppMenuItem(title: 'Cheque Return'),
-          ],
+          title: 'Cash Payment & Receipt',
+          route: RouteNames.cashPaymentReceipt,
         ),
         AppMenuItem(
-          title: 'Bank Slip Receipt',
-          children: [
-            AppMenuItem(title: 'Cheque'),
-            AppMenuItem(title: 'Cheque Return'),
-          ],
+          title: 'Bank Payment & Receipt',
+          route: RouteNames.bankPaymentReceipt,
         ),
         AppMenuItem(
           title: 'Journal Entry',
@@ -258,8 +250,14 @@ abstract final class NavigationConfig {
     AppMenuItem(
       title: 'Job Work',
       children: [
-        AppMenuItem(title: 'Issue (Work Dispatch)'),
-        AppMenuItem(title: 'Receive (Work Receive)'),
+        AppMenuItem(
+          title: 'Issue (Work Dispatch)',
+          route: RouteNames.jobWorkIssue,
+        ),
+        AppMenuItem(
+          title: 'Receive (Work Receive)',
+          route: RouteNames.jobWorkReceive,
+        ),
         AppMenuItem(title: 'Job Process Receive (Inward Challan)'),
         AppMenuItem(title: 'Job Process Issue (Outward Challan)'),
         AppMenuItem(title: 'Jobwork Receive (Inward)'),

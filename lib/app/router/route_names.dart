@@ -5,6 +5,8 @@ abstract final class RouteNames {
   static const itemMaster = '/item-master';
   static const cashBank = '/cash-bank';
   static const jobWork = '/job-work';
+  static const jobWorkReceive = '/job-work/receive';
+  static const jobWorkIssue = '/job-work/issue';
   static const transactions = '/transactions';
   static const financialReports = '/financial-reports';
   static const utilities = '/utilities';
@@ -12,11 +14,15 @@ abstract final class RouteNames {
   static const settings = '/settings';
   static const sales = '/sales';
   static const purchase = '/purchase';
+  static const creditNote = '/transactions/credit-note';
+  static const debitNote = '/transactions/debit-note';
   static const companyProfile = '/company-profile';
   static const addParty = '/account-master/add-party';
   static const findParty = '/account-master/find-party';
   static const cashReceive = '/cash-bank/cash-receive';
   static const cashPayment = '/cash-bank/cash-payment';
+  static const cashPaymentReceipt = '/cash-bank/cash-payment-receipt';
   static const bankReceive = '/cash-bank/bank-receive';
   static const bankPayment = '/cash-bank/bank-payment';
+  static const bankPaymentReceipt = '/cash-bank/bank-payment-receipt';
 }

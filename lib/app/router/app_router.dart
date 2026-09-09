@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../../features/account_master/presentation/pages/account_master_page.dart';
+import '../../features/cash_bank/presentation/pages/cash_payment_receipt_split_page.dart';
+import '../../features/cash_bank/presentation/pages/bank_payment_receipt_split_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/item_master/presentation/pages/item_master_page.dart';
+import '../../features/job_work/presentation/pages/job_work_receive_page.dart';
+import '../../features/job_work/presentation/pages/job_work_issue_page.dart';
+import '../../features/transactions/presentation/pages/credit_note_page.dart';
+import '../../features/transactions/presentation/pages/debit_note_page.dart';
 import '../../features/shell/presentation/pages/app_shell.dart';
 import 'route_names.dart';
 
@@ -10,6 +18,14 @@ abstract final class AppRouter {
     final route = settings.name ?? RouteNames.home;
     final page = switch (route) {
       RouteNames.home => const HomePage(),
+      RouteNames.accountMaster => const AccountMasterPage(),
+      RouteNames.itemMaster => const ItemMasterPage(),
+      RouteNames.jobWorkReceive => const JobWorkReceivePage(),
+      RouteNames.jobWorkIssue => const JobWorkIssuePage(),
+      RouteNames.creditNote => const CreditNotePage(),
+      RouteNames.debitNote => const DebitNotePage(),
+      RouteNames.cashPaymentReceipt => const CashPaymentReceiptSplitPage(),
+      RouteNames.bankPaymentReceipt => const BankPaymentReceiptSplitPage(),
       _ => PlaceholderPage(title: _titleFor(route)),
     };
     return MaterialPageRoute<void>(
@@ -25,6 +41,8 @@ abstract final class AppRouter {
     RouteNames.itemMaster => 'Item Master',
     RouteNames.cashBank => 'Cash & Bank',
     RouteNames.jobWork => 'Job Work',
+    RouteNames.jobWorkReceive => 'Job Work Receive',
+    RouteNames.jobWorkIssue => 'Job Work Issue',
     RouteNames.transactions => 'Transactions',
     RouteNames.financialReports => 'Financial Reports',
     RouteNames.utilities => 'Utilities',
@@ -32,13 +50,17 @@ abstract final class AppRouter {
     RouteNames.settings => 'Settings',
     RouteNames.sales => 'Sales',
     RouteNames.purchase => 'Purchase',
+    RouteNames.creditNote => 'Credit Note',
+    RouteNames.debitNote => 'Debit Note',
     RouteNames.companyProfile => 'Company Profile',
     RouteNames.addParty => 'Add Party',
     RouteNames.findParty => 'Find out party',
     RouteNames.cashReceive => 'Cash Receive',
     RouteNames.cashPayment => 'Cash Payment',
+    RouteNames.cashPaymentReceipt => 'Cash Payment & Receipt',
     RouteNames.bankReceive => 'Bank Receive',
     RouteNames.bankPayment => 'Bank Payment',
+    RouteNames.bankPaymentReceipt => 'Bank Payment & Receipt',
     _ => 'Dashboard',
   };
 }
@@ -138,17 +160,15 @@ class _DataGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columns = title.contains('Job')
-        ? ['Sr No', 'Taka No', 'Meters', 'Weight', 'Marka', 'Remarks']
-        : [
-            'Sr No',
-            'Party Name',
-            'Bill No',
-            'Bill Date',
-            'Bill Amount',
-            'Due Date',
-            'Unpaid',
-          ];
+    final columns = [
+      'Sr No',
+      'Party Name',
+      'Bill No',
+      'Bill Date',
+      'Bill Amount',
+      'Due Date',
+      'Unpaid',
+    ];
     return Container(
       decoration: BoxDecoration(border: Border.all(color: AppColors.border)),
       child: Column(
