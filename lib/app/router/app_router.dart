@@ -10,6 +10,8 @@ import '../../features/job_work/presentation/pages/job_work_receive_page.dart';
 import '../../features/job_work/presentation/pages/job_work_issue_page.dart';
 import '../../features/transactions/presentation/pages/credit_note_page.dart';
 import '../../features/transactions/presentation/pages/debit_note_page.dart';
+import '../../features/transactions/presentation/pages/purchase_page.dart';
+import '../../features/transactions/presentation/pages/sales_page.dart';
 import '../../features/shell/presentation/pages/app_shell.dart';
 import 'route_names.dart';
 
@@ -24,6 +26,8 @@ abstract final class AppRouter {
       RouteNames.jobWorkIssue => const JobWorkIssuePage(),
       RouteNames.creditNote => const CreditNotePage(),
       RouteNames.debitNote => const DebitNotePage(),
+      RouteNames.purchase => const PurchasePage(),
+      RouteNames.sales => const SalesPage(),
       RouteNames.cashPaymentReceipt => const CashPaymentReceiptSplitPage(),
       RouteNames.bankPaymentReceipt => const BankPaymentReceiptSplitPage(),
       _ => PlaceholderPage(title: _titleFor(route)),

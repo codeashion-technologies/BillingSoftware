@@ -111,14 +111,14 @@ abstract final class NavigationConfig {
         AppMenuItem(
           title: 'Sales',
           children: [
-            AppMenuItem(title: 'Sales'),
+            AppMenuItem(title: 'Sales', route: RouteNames.sales),
             AppMenuItem(title: 'Sales Return'),
           ],
         ),
         AppMenuItem(
           title: 'Purchase',
           children: [
-            AppMenuItem(title: 'Purchase'),
+            AppMenuItem(title: 'Purchase', route: RouteNames.purchase),
             AppMenuItem(title: 'Purchase Return'),
             AppMenuItem(title: 'General Expenses'),
           ],

@@ -18,6 +18,8 @@ import 'package:accounting_software/features/job_work/presentation/pages/job_wor
 import 'package:accounting_software/features/job_work/presentation/pages/job_work_issue_page.dart';
 import 'package:accounting_software/features/transactions/presentation/pages/credit_note_page.dart';
 import 'package:accounting_software/features/transactions/presentation/pages/debit_note_page.dart';
+import 'package:accounting_software/features/transactions/presentation/pages/purchase_page.dart';
+import 'package:accounting_software/features/transactions/presentation/pages/sales_page.dart';
 
 void main() {
   testWidgets('application shell loads', (WidgetTester tester) async {
@@ -142,6 +144,63 @@ void main() {
     expect(tester.widget<TextField>(metersField).focusNode?.hasFocus, isTrue);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('purchase entry adds a line on enter and updates totals', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: PurchasePage())),
+    );
+
+    final product = find.byKey(const ValueKey('purchaseProductField'));
+    final quantity = find.byKey(const ValueKey('purchaseQuantityField'));
+    final rate = find.byKey(const ValueKey('purchaseRateField'));
+    await tester.enterText(product, 'Product A');
+    await tester.enterText(quantity, '2');
+    await tester.enterText(rate, '100');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(find.text('Product A'), findsOneWidget);
+    expect(find.text('236.00'), findsNWidgets(2));
+    expect(tester.widget<TextField>(product).focusNode?.hasFocus, isTrue);
+    tester.takeException();
+  });
+
+  testWidgets(
+    'sales entry supports sequential keyboard rows and sales fields',
+    (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(1440, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: SalesPage())),
+      );
+
+      expect(find.text('IS_NOStk'), findsNWidgets(2));
+      expect(find.text('Ch Date'), findsNWidgets(2));
+      expect(find.text('VatCalc'), findsOneWidget);
+      expect(find.text('Receive LotNo'), findsOneWidget);
+
+      final product = find.byKey(const ValueKey('salesProductField'));
+      final meters = find.byKey(const ValueKey('salesMetersField'));
+      final rate = find.byKey(const ValueKey('salesRateField'));
+      await tester.enterText(product, 'Fabric A');
+      await tester.enterText(meters, '2');
+      await tester.enterText(rate, '100');
+      await tester.tap(rate);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      expect(find.text('Fabric A'), findsOneWidget);
+      expect(find.text('236.00'), findsNWidgets(2));
+      expect(tester.widget<TextField>(product).focusNode?.hasFocus, isTrue);
+      tester.takeException();
+    },
+  );
 
   testWidgets('job work issue fits desktop layout', (
     WidgetTester tester,
