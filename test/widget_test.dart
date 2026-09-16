@@ -22,8 +22,41 @@ import 'package:accounting_software/features/transactions/presentation/pages/pur
 import 'package:accounting_software/features/transactions/presentation/pages/sales_page.dart';
 
 void main() {
+  testWidgets('startup rejects invalid credentials', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      AccountingApp(credentialVerifier: _testCredentialVerifier),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Financial Report'), findsNothing);
+
+    final dialogFields = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(dialogFields.at(0), 'wrong');
+    await tester.enterText(dialogFields.at(1), 'wrong');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('CODEASHION TECHNOLOGIES'), findsOneWidget);
+    expect(find.text('Financial Report'), findsNothing);
+  });
+
   testWidgets('application shell loads', (WidgetTester tester) async {
-    await tester.pumpWidget(const AccountingApp());
+    await tester.binding.setSurfaceSize(const Size(1280, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      AccountingApp(credentialVerifier: _testCredentialVerifier),
+    );
+    await _signIn(tester);
     expect(find.textContaining('CODEASHION TECHNOLOGIES'), findsNWidgets(3));
     expect(find.text('Job'), findsOneWidget);
     expect(find.text('Financial Report'), findsOneWidget);
@@ -33,7 +66,10 @@ void main() {
   testWidgets('master menu includes account master route', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AccountingApp());
+    await tester.pumpWidget(
+      AccountingApp(credentialVerifier: _testCredentialVerifier),
+    );
+    await _signIn(tester);
 
     final masterMenu = NavigationConfig.topMenu.firstWhere(
       (item) => item.title == 'Master',
@@ -51,7 +87,12 @@ void main() {
   testWidgets('shell menu labels use readable text colors', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AccountingApp());
+    await tester.binding.setSurfaceSize(const Size(1280, 720));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      AccountingApp(credentialVerifier: _testCredentialVerifier),
+    );
+    await _signIn(tester);
 
     final financialReportText = tester.widget<Text>(
       find.text('Financial Report'),
@@ -224,10 +265,14 @@ void main() {
   testWidgets('job work issue route opens from the application shell', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const AccountingApp());
-    final context = tester.element(find.text('CODEASHION TECHNOLOGIES').first);
-
-    Navigator.of(context).pushReplacementNamed(RouteNames.jobWorkIssue);
+    await tester.pumpWidget(
+      AccountingApp(credentialVerifier: _testCredentialVerifier),
+    );
+    await _signIn(tester);
+    final appNavigator = tester.state<NavigatorState>(
+      find.byKey(const ValueKey('authenticatedNavigator')),
+    );
+    appNavigator.pushReplacementNamed(RouteNames.jobWorkIssue);
     await tester.pumpAndSettle();
 
     expect(find.text('JOB WORK ISSUE FROM MILL'), findsOneWidget);
@@ -300,3 +345,26 @@ void main() {
     expect(find.text('Please enter a valid GST number.'), findsOneWidget);
   });
 }
+
+Future<void> _signIn(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  final dialogFields = find.descendant(
+    of: find.byType(AlertDialog),
+    matching: find.byType(TextField),
+  );
+  await tester.enterText(dialogFields.at(0), '3723');
+  await tester.enterText(dialogFields.at(1), 'balkrishna');
+  await tester.tap(
+    find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(FilledButton),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.pump();
+}
+
+Future<bool> _testCredentialVerifier({
+  required String userId,
+  required String password,
+}) async => userId == '3723' && password == 'balkrishna';
