@@ -1,9 +1,72 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/services/authentication_service.dart';
+import '../../../../core/services/firm_service.dart';
+import '../../../../shared/models/firm.dart';
+
+class UserSelectionDialog extends StatefulWidget {
+  const UserSelectionDialog({super.key});
+
+  @override
+  State<UserSelectionDialog> createState() => _UserSelectionDialogState();
+}
+
+class _UserSelectionDialogState extends State<UserSelectionDialog> {
+  Firm? _selected;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Select User'),
+    content: SizedBox(
+      width: 480,
+      height: 320,
+      child: FutureBuilder<List<Firm>>(
+        future: FirmService().getFirms(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final users = snapshot.data!;
+          if (users.isEmpty) {
+            return const Center(child: Text('No users found.'));
+          }
+          return ListView.separated(
+            itemCount: users.length,
+            separatorBuilder: (_, _) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return RadioListTile<Firm>(
+                value: user,
+                groupValue: _selected,
+                onChanged: (value) => setState(() => _selected = value),
+                title: Text(user.name),
+                subtitle: Text('User ID: ${user.code}  |  Area: ${user.area}'),
+              );
+            },
+          );
+        },
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Cancel'),
+      ),
+      FilledButton.icon(
+        onPressed: _selected == null
+            ? null
+            : () => Navigator.of(context).pop(_selected!.code),
+        icon: const Icon(Icons.arrow_forward),
+        label: const Text('Continue'),
+      ),
+    ],
+  );
+}
 
 class ChangePasswordDialog extends StatefulWidget {
-  const ChangePasswordDialog({super.key});
+  const ChangePasswordDialog({this.userId = '3723', super.key});
+
+  final String userId;
 
   @override
   State<ChangePasswordDialog> createState() => _ChangePasswordDialogState();
@@ -49,7 +112,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
       _errorMessage = null;
     });
     final changed = await AuthenticationService().changePassword(
-      userId: '3723',
+      userId: widget.userId,
       currentPassword: _currentController.text,
       newPassword: newPassword,
     );
@@ -92,7 +155,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Change Password'),
+    title: Text('Change Password - User ${widget.userId}'),
     content: SizedBox(
       width: 380,
       child: Column(

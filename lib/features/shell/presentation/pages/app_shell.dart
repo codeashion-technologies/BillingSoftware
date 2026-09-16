@@ -102,7 +102,7 @@ class _TopMenu extends StatelessWidget {
 
     if (item.children.isEmpty) {
       return MenuItemButton(
-        onPressed: () {
+        onPressed: () async {
           if (item.route != null) {
             Navigator.pushReplacementNamed(context, item.route!);
           }
@@ -127,14 +127,20 @@ class _TopMenu extends StatelessWidget {
 
     if (item.children.isEmpty) {
       return MenuItemButton(
-        onPressed: () {
+        onPressed: () async {
           if (item.route != null) {
             Navigator.pushReplacementNamed(context, item.route!);
           } else if (item.title == 'Change Password') {
-            showDialog<bool>(
+            final userId = await showDialog<String>(
               context: context,
-              builder: (_) => const ChangePasswordDialog(),
+              builder: (_) => const UserSelectionDialog(),
             );
+            if (userId != null && context.mounted) {
+              showDialog<bool>(
+                context: context,
+                builder: (_) => ChangePasswordDialog(userId: userId),
+              );
+            }
           } else if (item.title == 'New User') {
             showDialog<Firm>(
               context: context,
