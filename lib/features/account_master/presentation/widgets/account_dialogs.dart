@@ -65,13 +65,14 @@ class _AccountSelectionDialogState extends State<AccountSelectionDialog> {
         context: context,
         builder: (_) => AccountDetailsDialog(account: account, printMode: true),
       );
+      if (mounted) Navigator.pop(context);
       return;
     }
-    await showDialog<void>(
+    final loadIntoForm = await showDialog<bool>(
       context: context,
       builder: (_) => AccountDetailsDialog(account: account),
     );
-    if (mounted) Navigator.pop(context, account);
+    if (mounted) Navigator.pop(context, loadIntoForm == true ? account : null);
   }
 
   @override
@@ -194,6 +195,12 @@ class AccountDetailsDialog extends StatelessWidget {
       ),
     ),
     actions: [
+      if (!printMode)
+        FilledButton.icon(
+          onPressed: () => Navigator.pop(context, true),
+          icon: const Icon(Icons.input_outlined),
+          label: const Text('Load into Form'),
+        ),
       if (printMode)
         FilledButton.icon(
           onPressed: () => _printAccount(context),

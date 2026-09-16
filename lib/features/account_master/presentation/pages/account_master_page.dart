@@ -450,7 +450,10 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
           const AccountSelectionDialog(mode: AccountDialogMode.find),
     );
     if (!mounted) return;
-    if (account == null) return;
+    if (account == null) {
+      _resetForm();
+      return;
+    }
     _applyAccount(account);
     _setStatus('Account loaded from database.', false);
   }
@@ -509,6 +512,7 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
       builder: (_) =>
           const AccountSelectionDialog(mode: AccountDialogMode.print),
     );
+    if (mounted) _resetForm();
   }
 
   void _handleExit() {
