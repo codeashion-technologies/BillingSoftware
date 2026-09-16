@@ -28,4 +28,20 @@ abstract final class DatabaseTables {
       area TEXT NOT NULL DEFAULT ''
     )
   ''';
+
+  static const accounts =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DatabaseConstants.accountsTable} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      group_name TEXT NOT NULL DEFAULT '',
+      address1 TEXT NOT NULL DEFAULT '',
+      address2 TEXT NOT NULL DEFAULT '',
+      delivery_address1 TEXT NOT NULL DEFAULT '',
+      city TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
+      state TEXT NOT NULL DEFAULT '',
+      gst_no TEXT NOT NULL UNIQUE
+    )
+  ''';
 }

@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/services/account_service.dart';
+import '../../../../shared/models/account.dart';
 
 class GstLookupResult {
   const GstLookupResult({
@@ -10,6 +15,8 @@ class GstLookupResult {
     this.city,
     this.state,
     this.phone,
+    this.gstNo,
+    this.group,
   });
 
   final String name;
@@ -18,6 +25,8 @@ class GstLookupResult {
   final String? city;
   final String? state;
   final String? phone;
+  final String? gstNo;
+  final String? group;
 }
 
 class GstUtils {
@@ -35,11 +44,46 @@ class GstUtils {
 
 class GstLookupService {
   static Future<GstLookupResult?> fetchDetails(String gstin) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-
     final normalized = gstin.trim().toUpperCase();
     if (!GstUtils.isValidGstin(normalized)) {
       return null;
+    }
+
+    try {
+      final uri = Uri.https('appyflow.in', '/api/verifyGST', {
+        'gstNo': normalized,
+        'key_secret': 'CBIXxHEB3MfUWUamAK53Clk5h6g1',
+      });
+      final client = HttpClient();
+      final response = await client
+          .getUrl(uri)
+          .then((request) => request.close());
+      final body = await response.transform(utf8.decoder).join();
+      client.close();
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final json = jsonDecode(body) as Map<String, dynamic>;
+        final taxpayer = json['taxpayerInfo'] as Map<String, dynamic>?;
+        final address = taxpayer?['pradr']?['addr'] as Map<String, dynamic>?;
+        if (taxpayer != null && taxpayer['gstin'] != null) {
+          final addressLine =
+              [address?['bno'], address?['bnm'], address?['loc']]
+                  .whereType<String>()
+                  .where((value) => value.trim().isNotEmpty)
+                  .join(', ');
+          return GstLookupResult(
+            name: (taxpayer['tradeNam'] ?? taxpayer['lgnm'] ?? '').toString(),
+            address1: addressLine,
+            address2: address?['st']?.toString(),
+            city: (address?['dst'] ?? address?['city'])?.toString(),
+            state: address?['stcd']?.toString(),
+            phone: address?['pncd']?.toString(),
+            gstNo: taxpayer['gstin'].toString(),
+            group: taxpayer['ctb']?.toString(),
+          );
+        }
+      }
+    } catch (_) {
+      // Manual entry remains available when the lookup service is unavailable.
     }
 
     const mockResults = {
@@ -138,11 +182,15 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
 
       setState(() {
         _nameController.text = details.name;
+        _groupController.text = details.group ?? _groupController.text;
         _address1Controller.text = details.address1 ?? _address1Controller.text;
         _address2Controller.text = details.address2 ?? _address2Controller.text;
+        _deliveryAddress1Controller.text =
+            details.address1 ?? _deliveryAddress1Controller.text;
         _cityController.text = details.city ?? _cityController.text;
         _stateController.text = details.state ?? _stateController.text;
         _phoneController.text = details.phone ?? _phoneController.text;
+        _gstNoController.text = details.gstNo ?? gstin;
         _isLoading = false;
         _statusMessage = 'GST details fetched successfully.';
         _isErrorStatus = false;
@@ -215,7 +263,20 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     _setStatus('Form cleared.', false);
   }
 
-  void _handleSave() {
+  Account _currentAccount() => Account(
+    id: null,
+    name: _nameController.text.trim(),
+    group: _groupController.text.trim(),
+    address1: _address1Controller.text.trim(),
+    address2: _address2Controller.text.trim(),
+    deliveryAddress1: _deliveryAddress1Controller.text.trim(),
+    city: _cityController.text.trim(),
+    phone: _phoneController.text.trim(),
+    state: _stateController.text.trim(),
+    gstNo: _gstNoController.text.trim().toUpperCase(),
+  );
+
+  Future<void> _handleSave() async {
     final name = _nameController.text.trim();
     final gstNo = _gstNoController.text.trim();
 
@@ -224,7 +285,39 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
       return;
     }
 
-    _setStatus('Account saved successfully.', false);
+    try {
+      await AccountService().save(_currentAccount());
+      _setStatus('Account saved successfully in database.', false);
+    } catch (_) {
+      _setStatus('Account could not be saved. Check GST number.', true);
+    }
+  }
+
+  Future<void> _handleFind() async {
+    final gstNo = _gstNoController.text.trim();
+    if (!GstUtils.isValidGstin(gstNo)) {
+      _setStatus('Enter a valid GST number to find an account.', true);
+      return;
+    }
+    final account = await AccountService().findByGst(gstNo);
+    if (!mounted) return;
+    if (account == null) {
+      _setStatus('No saved account found for this GST number.', true);
+      return;
+    }
+    setState(() {
+      _nameController.text = account.name;
+      _groupController.text = account.group;
+      _address1Controller.text = account.address1;
+      _address2Controller.text = account.address2;
+      _deliveryAddress1Controller.text = account.deliveryAddress1;
+      _cityController.text = account.city;
+      _phoneController.text = account.phone;
+      _stateController.text = account.state;
+      _gstNoController.text = account.gstNo;
+      _statusMessage = 'Account loaded from database.';
+      _isErrorStatus = false;
+    });
   }
 
   void _handleCancel() {
@@ -251,6 +344,7 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     );
 
     if (confirmed == true) {
+      await AccountService().deleteByGst(_gstNoController.text);
       _resetForm();
       _setStatus('Account deleted.', false);
     }
@@ -383,12 +477,11 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
                           child: Row(
                             children: [
                               _buildActionButton('New', Icons.add, _resetForm),
-                              _buildActionButton('Find', Icons.search, () {
-                                _setStatus(
-                                  'Search existing account details.',
-                                  false,
-                                );
-                              }),
+                              _buildActionButton(
+                                'Find',
+                                Icons.search,
+                                _handleFind,
+                              ),
                               _buildActionButton(
                                 'Save',
                                 Icons.save_outlined,

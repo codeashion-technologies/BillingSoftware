@@ -8,6 +8,7 @@ abstract final class DatabaseMigrations {
     await database.execute(DatabaseTables.schemaMigrations);
     await database.execute(DatabaseTables.credentials);
     await database.execute(DatabaseTables.firms);
+    await database.execute(DatabaseTables.accounts);
     await _seedCredentials(database);
     await _seedFirm(database);
     await database.insert(DatabaseConstants.schemaMigrationsTable, {
@@ -29,6 +30,9 @@ abstract final class DatabaseMigrations {
       if (version == 3) {
         await database.execute(DatabaseTables.firms);
         await _seedFirm(database);
+      }
+      if (version == 4) {
+        await database.execute(DatabaseTables.accounts);
       }
       await database.insert(DatabaseConstants.schemaMigrationsTable, {
         'version': version,
