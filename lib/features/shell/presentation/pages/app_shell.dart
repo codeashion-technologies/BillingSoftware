@@ -4,6 +4,7 @@ import '../../../../app/router/navigation_config.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_status_bar.dart';
+import '../../../authentication/presentation/widgets/change_password_dialog.dart';
 import '../../../../shared/models/company_profile.dart';
 
 class AppShell extends StatelessWidget {
@@ -122,6 +123,11 @@ class _TopMenu extends StatelessWidget {
         onPressed: () {
           if (item.route != null) {
             Navigator.pushReplacementNamed(context, item.route!);
+          } else if (item.title == 'Change Password') {
+            showDialog<bool>(
+              context: context,
+              builder: (_) => const ChangePasswordDialog(),
+            );
           }
         },
         child: label,

@@ -22,4 +22,20 @@ class AuthenticationService {
     await _databaseHelper.close();
     return matches.isNotEmpty;
   }
+
+  Future<bool> changePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final database = await _databaseHelper.database;
+    final updated = await database.update(
+      DatabaseConstants.credentialsTable,
+      {'password': newPassword},
+      where: 'user_id = ? AND password = ?',
+      whereArgs: [userId.trim(), currentPassword],
+    );
+    await _databaseHelper.close();
+    return updated > 0;
+  }
 }
