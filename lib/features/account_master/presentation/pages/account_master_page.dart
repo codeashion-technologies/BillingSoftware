@@ -90,58 +90,58 @@ class GstLookupService {
     }
 
     try {
-      final uri = Uri.https('appyflow.in', '/api/verifyGST', {
-        'gstNo': normalized,
-        'key_secret': 'CBIXxHEB3MfUWUamAK53Clk5h6g1',
+      final uri = Uri.https('www.knowyourgst.com', '/developers/gstincall/', {
+        'gstin': normalized,
       });
       final client = HttpClient();
-      final response = await client
-          .getUrl(uri)
-          .then((request) => request.close());
+      final request = await client.getUrl(uri);
+      request.headers.set('passthrough', 'YmFsa3Jpc2huYTQxMzc5MTQxMDM');
+      final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
       client.close();
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final json = jsonDecode(body) as Map<String, dynamic>;
-        final taxpayer = json['taxpayerInfo'] as Map<String, dynamic>?;
-        final address = taxpayer?['pradr']?['addr'] as Map<String, dynamic>?;
-        if (taxpayer != null &&
-            taxpayer['gstin'] != null &&
-            taxpayer['pradr'] != null) {
+        final address = json['adress'] as Map<String, dynamic>?;
+        if (json['status_code'].toString() == '1' && json['gstin'] != null) {
           final addressLine =
-              [address?['bno'], address?['bnm'], address?['loc']]
+              [
+                    address?['floor'],
+                    address?['bno'],
+                    address?['bname'],
+                    address?['street'],
+                    address?['location'],
+                  ]
                   .whereType<String>()
                   .where((value) => value.trim().isNotEmpty)
                   .join(', ');
           return GstLookupResult(
-            name: (taxpayer['tradeNam'] ?? taxpayer['lgnm'] ?? '').toString(),
+            name: (json['trade-name'] ?? json['legal-name'] ?? '').toString(),
             address1: addressLine,
-            address2: address?['st']?.toString(),
-            city: (address?['dst'] ?? address?['city'])?.toString(),
-            state: address?['stcd']?.toString(),
+            address2: address?['street']?.toString(),
+            city: (address?['city'] ?? address?['location'])?.toString(),
+            state: address?['state']?.toString(),
             phone: null,
-            gstNo: taxpayer['gstin'].toString(),
-            group: taxpayer['ctb']?.toString(),
-            gstStatus: taxpayer['sts']?.toString(),
-            legalName: taxpayer['lgnm']?.toString(),
-            constitution: taxpayer['ctb']?.toString(),
-            registrationDate: taxpayer['rgdt']?.toString(),
-            businessNature: taxpayer['pradr']?['ntr']?.toString(),
+            gstNo: json['gstin'].toString(),
+            group: json['dealer-type']?.toString(),
+            gstStatus: json['status']?.toString(),
+            legalName: json['legal-name']?.toString(),
+            constitution: json['entity-type']?.toString(),
+            registrationDate: json['registration-date']?.toString(),
+            businessNature: json['business']?.toString(),
             principalBuilding: address?['bno']?.toString(),
-            principalFloor: address?['flno']?.toString(),
-            principalLocation: address?['loc']?.toString(),
-            principalStreet: address?['st']?.toString(),
-            district: address?['dst']?.toString(),
-            pincode: address?['pncd']?.toString(),
+            principalFloor: address?['floor']?.toString(),
+            principalLocation: address?['location']?.toString(),
+            principalStreet: address?['street']?.toString(),
+            district: null,
+            pincode: address?['pincode']?.toString(),
             latitude: address?['lt']?.toString(),
             longitude: address?['lg']?.toString(),
-            tradeNature: taxpayer['nba'] is List
-                ? (taxpayer['nba'] as List).join(', ')
-                : taxpayer['nba']?.toString(),
-            stateJurisdictionCode: taxpayer['stjCd']?.toString(),
-            stateJurisdiction: taxpayer['stj']?.toString(),
-            centralJurisdictionCode: taxpayer['ctjCd']?.toString(),
-            centralJurisdiction: taxpayer['ctj']?.toString(),
-            panNo: taxpayer['panNo']?.toString(),
+            tradeNature: json['business']?.toString(),
+            stateJurisdictionCode: null,
+            stateJurisdiction: null,
+            centralJurisdictionCode: null,
+            centralJurisdiction: null,
+            panNo: json['pan']?.toString(),
           );
         }
       }
@@ -149,26 +149,7 @@ class GstLookupService {
       // Manual entry remains available when the lookup service is unavailable.
     }
 
-    const mockResults = {
-      '27ABCDE1234F1Z5': GstLookupResult(
-        name: 'Alpha Industries Pvt. Ltd.',
-        address1: '32, Business Park Road',
-        address2: 'Andheri East',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        phone: '9876543210',
-      ),
-      '29ABCDE1234F1Z5': GstLookupResult(
-        name: 'Blue River Traders',
-        address1: '45, Industrial Layout',
-        address2: 'Whitefield',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        phone: '9988776655',
-      ),
-    };
-
-    return mockResults[normalized];
+    return null;
   }
 }
 

@@ -317,26 +317,6 @@ void main() {
     final gstField = find.byKey(const ValueKey('gstNoField'));
     final fetchButton = find.byKey(const ValueKey('fetchGstDetailsButton'));
 
-    await tester.enterText(gstField, '27ABCDE1234F1Z5');
-    await tester.ensureVisible(fetchButton);
-    await tester.tap(fetchButton);
-    await tester.pumpAndSettle();
-
-    final nameField = tester.widget<TextField>(
-      find.byKey(const ValueKey('nameField')),
-    );
-    expect(nameField.controller?.text, 'Alpha Industries Pvt. Ltd.');
-
-    final cityField = tester.widget<TextField>(
-      find.byKey(const ValueKey('cityField')),
-    );
-    expect(cityField.controller?.text, 'Mumbai');
-
-    final stateField = tester.widget<TextField>(
-      find.byKey(const ValueKey('stateField')),
-    );
-    expect(stateField.controller?.text, 'Maharashtra');
-
     await tester.enterText(gstField, 'INVALID');
     await tester.ensureVisible(fetchButton);
     await tester.tap(fetchButton);
