@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/services/firm_session.dart';
+import '../../../../core/services/item_service.dart';
+import '../../../../shared/models/item.dart';
+import '../widgets/item_dialogs.dart';
 
 class ItemMasterPage extends StatefulWidget {
   const ItemMasterPage({super.key});
@@ -123,7 +127,43 @@ class _ItemMasterPageState extends State<ItemMasterPage> {
     _setStatus('Form cleared.', false);
   }
 
-  void _handleSave() {
+  Item _currentItem() => Item(
+    id: null,
+    firmId: FirmSession.instance.current.id,
+    itemCode: _itemCodeController.text.trim(),
+    itemName: _itemNameController.text.trim(),
+    itemGroup: _itemGroupController.text.trim(),
+    subGroup: _subGroupController.text.trim(),
+    mfgBy: _mfgByController.text.trim(),
+    unitOfMeasure: _unitOfMeasureController.text.trim(),
+    rateRetail: _rateRetailController.text.trim(),
+    dealerRate: _dealerRateController.text.trim(),
+    purchaseRate: _purchaseRateController.text.trim(),
+    mrp: _mrpController.text.trim(),
+    cutAverage: _cutAverageController.text.trim(),
+    boxPack: _boxPackController.text.trim(),
+    looseQuantity: _looseQtyController.text.trim(),
+    hsnCode: _hsnCodeController.text.trim(),
+    sgst: _sgstController.text.trim(),
+    cgst: _cgstController.text.trim(),
+    igst: _igstController.text.trim(),
+    gstCalculation: _gstCalculationController.text,
+    hsnDescription: _hsnDescriptionController.text.trim(),
+    hsnUqc: _hsnUqcController.text.trim(),
+    rolMin: _rolMinController.text.trim(),
+    rolMax: _rolMaxController.text.trim(),
+    openingStockQuantity: _openingStockQtyController.text.trim(),
+    openingStockAmount: _openingStockAmountController.text.trim(),
+    openingStockNos: _openingStockNosController.text.trim(),
+    calculateOn: _calculateOnController.text,
+    rateUpdate: _rateUpdate,
+    showInStockReport: _showInStockReport,
+    active: _active,
+    discount: _discountController.text.trim(),
+    remarks: _remarksController.text.trim(),
+  );
+
+  Future<void> _handleSave() async {
     final itemCode = _itemCodeController.text.trim();
     final itemName = _itemNameController.text.trim();
 
@@ -157,48 +197,79 @@ class _ItemMasterPageState extends State<ItemMasterPage> {
       }
     }
 
-    _setStatus('Item saved successfully.', false);
+    try {
+      await ItemService().save(_currentItem());
+      _setStatus('Item saved successfully in database.', false);
+    } catch (_) {
+      _setStatus('Item could not be saved. Item Code may already exist.', true);
+    }
   }
 
-  void _handleFind() {
-    _setStatus(
-      'Search existing item details by Item Code or Item Name.',
-      false,
+  Future<void> _handleFind() async {
+    final item = await showDialog<Item>(
+      context: context,
+      builder: (_) => const ItemSelectionDialog(mode: ItemDialogMode.find),
     );
+    if (!mounted) return;
+    if (item == null) {
+      _resetForm();
+      return;
+    }
+    _applyItem(item);
+    _setStatus('Item loaded from database.', false);
+  }
+
+  void _applyItem(Item item) {
+    _itemCodeController.text = item.itemCode;
+    _itemNameController.text = item.itemName;
+    _itemGroupController.text = item.itemGroup;
+    _subGroupController.text = item.subGroup;
+    _mfgByController.text = item.mfgBy;
+    _unitOfMeasureController.text = item.unitOfMeasure;
+    _rateRetailController.text = item.rateRetail;
+    _dealerRateController.text = item.dealerRate;
+    _purchaseRateController.text = item.purchaseRate;
+    _mrpController.text = item.mrp;
+    _cutAverageController.text = item.cutAverage;
+    _boxPackController.text = item.boxPack;
+    _looseQtyController.text = item.looseQuantity;
+    _hsnCodeController.text = item.hsnCode;
+    _sgstController.text = item.sgst;
+    _cgstController.text = item.cgst;
+    _igstController.text = item.igst;
+    _gstCalculationController.text = item.gstCalculation;
+    _hsnDescriptionController.text = item.hsnDescription;
+    _hsnUqcController.text = item.hsnUqc;
+    _rolMinController.text = item.rolMin;
+    _rolMaxController.text = item.rolMax;
+    _openingStockQtyController.text = item.openingStockQuantity;
+    _openingStockAmountController.text = item.openingStockAmount;
+    _openingStockNosController.text = item.openingStockNos;
+    _calculateOnController.text = item.calculateOn;
+    _rateUpdate = item.rateUpdate;
+    _showInStockReport = item.showInStockReport;
+    _active = item.active;
+    _discountController.text = item.discount;
+    _remarksController.text = item.remarks;
   }
 
   Future<void> _handleDelete() async {
-    if (_itemCodeController.text.trim().isEmpty) {
-      _setStatus('Select an item to delete.', true);
-      return;
-    }
-
-    final confirmed = await showDialog<bool>(
+    final deleted = await showDialog<Item>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Item?'),
-        content: const Text('This item will be deleted permanently. Continue?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      builder: (_) => const ItemSelectionDialog(mode: ItemDialogMode.delete),
     );
-
-    if (confirmed == true) {
+    if (deleted != null && mounted) {
       _resetForm();
-      _setStatus('Item deleted successfully.', false);
+      _setStatus('${deleted.itemName} deleted from database.', false);
     }
   }
 
-  void _handlePrint() {
-    _setStatus('Printing item details...', false);
+  Future<void> _handlePrint() async {
+    await showDialog<Item>(
+      context: context,
+      builder: (_) => const ItemSelectionDialog(mode: ItemDialogMode.print),
+    );
+    if (mounted) _resetForm();
   }
 
   void _handleExit() {

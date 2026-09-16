@@ -64,6 +64,9 @@ abstract final class DatabaseMigrations {
           );
         }
       }
+      if (version == 6) {
+        await database.execute(DatabaseTables.items);
+      }
       await database.insert(DatabaseConstants.schemaMigrationsTable, {
         'version': version,
         'applied_at': DateTime.now().toIso8601String(),

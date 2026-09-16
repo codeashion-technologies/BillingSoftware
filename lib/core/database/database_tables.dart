@@ -65,4 +65,44 @@ abstract final class DatabaseTables {
       UNIQUE(firm_id, gst_no)
     )
   ''';
+
+  static const items =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DatabaseConstants.itemsTable} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firm_id INTEGER NOT NULL DEFAULT 0,
+      item_code TEXT NOT NULL,
+      item_name TEXT NOT NULL,
+      item_group TEXT NOT NULL DEFAULT '',
+      sub_group TEXT NOT NULL DEFAULT '',
+      mfg_by TEXT NOT NULL DEFAULT '',
+      unit_of_measure TEXT NOT NULL DEFAULT 'PCS',
+      rate_retail TEXT NOT NULL DEFAULT '',
+      dealer_rate TEXT NOT NULL DEFAULT '',
+      purchase_rate TEXT NOT NULL DEFAULT '',
+      mrp TEXT NOT NULL DEFAULT '',
+      cut_average TEXT NOT NULL DEFAULT '',
+      box_pack TEXT NOT NULL DEFAULT '',
+      loose_quantity TEXT NOT NULL DEFAULT '',
+      hsn_code TEXT NOT NULL DEFAULT '',
+      sgst TEXT NOT NULL DEFAULT '',
+      cgst TEXT NOT NULL DEFAULT '',
+      igst TEXT NOT NULL DEFAULT '',
+      gst_calculation TEXT NOT NULL DEFAULT 'Taxable',
+      hsn_description TEXT NOT NULL DEFAULT '',
+      hsn_uqc TEXT NOT NULL DEFAULT '',
+      rol_min TEXT NOT NULL DEFAULT '',
+      rol_max TEXT NOT NULL DEFAULT '',
+      opening_stock_quantity TEXT NOT NULL DEFAULT '',
+      opening_stock_amount TEXT NOT NULL DEFAULT '',
+      opening_stock_nos TEXT NOT NULL DEFAULT '',
+      calculate_on TEXT NOT NULL DEFAULT 'Mtrs',
+      rate_update TEXT NOT NULL DEFAULT 'Y',
+      show_in_stock_report TEXT NOT NULL DEFAULT 'Y',
+      active TEXT NOT NULL DEFAULT 'Y',
+      discount TEXT NOT NULL DEFAULT '',
+      remarks TEXT NOT NULL DEFAULT '',
+      UNIQUE(firm_id, item_code)
+    )
+  ''';
 }
