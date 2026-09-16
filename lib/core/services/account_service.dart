@@ -23,6 +23,19 @@ class AccountService {
     return rows.isEmpty ? null : Account.fromMap(rows.first);
   }
 
+  Future<List<Account>> getAll({int firmId = 0}) async {
+    final database = await _databaseHelper.database;
+    firmId = await _resolveFirmId(database, firmId);
+    final rows = await database.query(
+      DatabaseConstants.accountsTable,
+      where: 'firm_id = ?',
+      whereArgs: [firmId],
+      orderBy: 'name COLLATE NOCASE',
+    );
+    await _databaseHelper.close();
+    return rows.map(Account.fromMap).toList();
+  }
+
   Future<void> save(Account account) async {
     final database = await _databaseHelper.database;
     var firmId = account.firmId;
@@ -50,6 +63,16 @@ class AccountService {
       DatabaseConstants.accountsTable,
       where: 'gst_no = ? AND firm_id = ?',
       whereArgs: [gstNo.trim().toUpperCase(), firmId],
+    );
+    await _databaseHelper.close();
+  }
+
+  Future<void> deleteById(int id) async {
+    final database = await _databaseHelper.database;
+    await database.delete(
+      DatabaseConstants.accountsTable,
+      where: 'id = ?',
+      whereArgs: [id],
     );
     await _databaseHelper.close();
   }

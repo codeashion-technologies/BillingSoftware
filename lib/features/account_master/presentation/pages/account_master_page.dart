@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/account_service.dart';
 import '../../../../core/services/firm_session.dart';
 import '../../../../shared/models/account.dart';
+import '../widgets/account_dialogs.dart';
 
 class GstLookupResult {
   const GstLookupResult({
@@ -462,52 +463,46 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
   }
 
   Future<void> _handleFind() async {
-    final gstNo = _gstNoController.text.trim();
-    if (!GstUtils.isValidGstin(gstNo)) {
-      _setStatus('Enter a valid GST number to find an account.', true);
-      return;
-    }
-    final account = await AccountService().findByGst(
-      gstNo,
-      firmId: FirmSession.instance.current.id,
+    final account = await showDialog<Account>(
+      context: context,
+      builder: (_) =>
+          const AccountSelectionDialog(mode: AccountDialogMode.find),
     );
     if (!mounted) return;
-    if (account == null) {
-      _setStatus('No saved account found for this GST number.', true);
-      return;
-    }
-    setState(() {
-      _nameController.text = account.name;
-      _groupController.text = account.group;
-      _address1Controller.text = account.address1;
-      _address2Controller.text = account.address2;
-      _deliveryAddress1Controller.text = account.deliveryAddress1;
-      _cityController.text = account.city;
-      _phoneController.text = account.phone;
-      _stateController.text = account.state;
-      _gstNoController.text = account.gstNo;
-      _gstStatusController.text = account.gstStatus;
-      _legalNameController.text = account.legalName;
-      _constitutionController.text = account.constitution;
-      _registrationDateController.text = account.registrationDate;
-      _businessNatureController.text = account.businessNature;
-      _buildingController.text = account.principalBuilding;
-      _floorController.text = account.principalFloor;
-      _locationController.text = account.principalLocation;
-      _streetController.text = account.principalStreet;
-      _districtController.text = account.district;
-      _pincodeController.text = account.pincode;
-      _latitudeController.text = account.latitude;
-      _longitudeController.text = account.longitude;
-      _tradeNatureController.text = account.tradeNature;
-      _stateJurisdictionCodeController.text = account.stateJurisdictionCode;
-      _stateJurisdictionController.text = account.stateJurisdiction;
-      _centralJurisdictionCodeController.text = account.centralJurisdictionCode;
-      _centralJurisdictionController.text = account.centralJurisdiction;
-      _panController.text = account.panNo;
-      _statusMessage = 'Account loaded from database.';
-      _isErrorStatus = false;
-    });
+    if (account == null) return;
+    _applyAccount(account);
+    _setStatus('Account loaded from database.', false);
+  }
+
+  void _applyAccount(Account account) {
+    _nameController.text = account.name;
+    _groupController.text = account.group;
+    _address1Controller.text = account.address1;
+    _address2Controller.text = account.address2;
+    _deliveryAddress1Controller.text = account.deliveryAddress1;
+    _cityController.text = account.city;
+    _phoneController.text = account.phone;
+    _stateController.text = account.state;
+    _gstNoController.text = account.gstNo;
+    _gstStatusController.text = account.gstStatus;
+    _legalNameController.text = account.legalName;
+    _constitutionController.text = account.constitution;
+    _registrationDateController.text = account.registrationDate;
+    _businessNatureController.text = account.businessNature;
+    _buildingController.text = account.principalBuilding;
+    _floorController.text = account.principalFloor;
+    _locationController.text = account.principalLocation;
+    _streetController.text = account.principalStreet;
+    _districtController.text = account.district;
+    _pincodeController.text = account.pincode;
+    _latitudeController.text = account.latitude;
+    _longitudeController.text = account.longitude;
+    _tradeNatureController.text = account.tradeNature;
+    _stateJurisdictionCodeController.text = account.stateJurisdictionCode;
+    _stateJurisdictionController.text = account.stateJurisdiction;
+    _centralJurisdictionCodeController.text = account.centralJurisdictionCode;
+    _centralJurisdictionController.text = account.centralJurisdiction;
+    _panController.text = account.panNo;
   }
 
   void _handleCancel() {
@@ -515,36 +510,24 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
   }
 
   Future<void> _handleDelete() async {
-    final confirmed = await showDialog<bool>(
+    final deleted = await showDialog<Account>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account?'),
-        content: const Text('This will remove the current account details.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      builder: (_) =>
+          const AccountSelectionDialog(mode: AccountDialogMode.delete),
     );
 
-    if (confirmed == true) {
-      await AccountService().deleteByGst(
-        _gstNoController.text,
-        firmId: FirmSession.instance.current.id,
-      );
+    if (deleted != null && mounted) {
       _resetForm();
-      _setStatus('Account deleted.', false);
+      _setStatus('${deleted.name} deleted from database.', false);
     }
   }
 
-  void _handlePrint() {
-    _setStatus('Printing account details...', false);
+  Future<void> _handlePrint() async {
+    await showDialog<Account>(
+      context: context,
+      builder: (_) =>
+          const AccountSelectionDialog(mode: AccountDialogMode.print),
+    );
   }
 
   void _handleExit() {
