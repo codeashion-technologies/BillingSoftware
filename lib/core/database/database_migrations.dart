@@ -34,6 +34,36 @@ abstract final class DatabaseMigrations {
       if (version == 4) {
         await database.execute(DatabaseTables.accounts);
       }
+      if (version == 5) {
+        await database.execute(
+          'ALTER TABLE ${DatabaseConstants.accountsTable} ADD COLUMN firm_id INTEGER NOT NULL DEFAULT 0',
+        );
+        for (final column in [
+          'gst_status TEXT NOT NULL DEFAULT \'\'',
+          'taxpayer_legal_name TEXT NOT NULL DEFAULT \'\'',
+          'constitution TEXT NOT NULL DEFAULT \'\'',
+          'registration_date TEXT NOT NULL DEFAULT \'\'',
+          'business_nature TEXT NOT NULL DEFAULT \'\'',
+          'principal_building TEXT NOT NULL DEFAULT \'\'',
+          'principal_floor TEXT NOT NULL DEFAULT \'\'',
+          'principal_location TEXT NOT NULL DEFAULT \'\'',
+          'principal_street TEXT NOT NULL DEFAULT \'\'',
+          'district TEXT NOT NULL DEFAULT \'\'',
+          'pincode TEXT NOT NULL DEFAULT \'\'',
+          'latitude TEXT NOT NULL DEFAULT \'\'',
+          'longitude TEXT NOT NULL DEFAULT \'\'',
+          'trade_nature TEXT NOT NULL DEFAULT \'\'',
+          'state_jurisdiction_code TEXT NOT NULL DEFAULT \'\'',
+          'state_jurisdiction TEXT NOT NULL DEFAULT \'\'',
+          'central_jurisdiction_code TEXT NOT NULL DEFAULT \'\'',
+          'central_jurisdiction TEXT NOT NULL DEFAULT \'\'',
+          'pan_no TEXT NOT NULL DEFAULT \'\'',
+        ]) {
+          await database.execute(
+            'ALTER TABLE ${DatabaseConstants.accountsTable} ADD COLUMN $column',
+          );
+        }
+      }
       await database.insert(DatabaseConstants.schemaMigrationsTable, {
         'version': version,
         'applied_at': DateTime.now().toIso8601String(),

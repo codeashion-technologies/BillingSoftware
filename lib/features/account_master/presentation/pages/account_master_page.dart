@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/account_service.dart';
+import '../../../../core/services/firm_session.dart';
 import '../../../../shared/models/account.dart';
 
 class GstLookupResult {
@@ -17,6 +18,25 @@ class GstLookupResult {
     this.phone,
     this.gstNo,
     this.group,
+    this.gstStatus,
+    this.legalName,
+    this.constitution,
+    this.registrationDate,
+    this.businessNature,
+    this.principalBuilding,
+    this.principalFloor,
+    this.principalLocation,
+    this.principalStreet,
+    this.district,
+    this.pincode,
+    this.latitude,
+    this.longitude,
+    this.tradeNature,
+    this.stateJurisdictionCode,
+    this.stateJurisdiction,
+    this.centralJurisdictionCode,
+    this.centralJurisdiction,
+    this.panNo,
   });
 
   final String name;
@@ -27,6 +47,25 @@ class GstLookupResult {
   final String? phone;
   final String? gstNo;
   final String? group;
+  final String? gstStatus;
+  final String? legalName;
+  final String? constitution;
+  final String? registrationDate;
+  final String? businessNature;
+  final String? principalBuilding;
+  final String? principalFloor;
+  final String? principalLocation;
+  final String? principalStreet;
+  final String? district;
+  final String? pincode;
+  final String? latitude;
+  final String? longitude;
+  final String? tradeNature;
+  final String? stateJurisdictionCode;
+  final String? stateJurisdiction;
+  final String? centralJurisdictionCode;
+  final String? centralJurisdiction;
+  final String? panNo;
 }
 
 class GstUtils {
@@ -64,7 +103,9 @@ class GstLookupService {
         final json = jsonDecode(body) as Map<String, dynamic>;
         final taxpayer = json['taxpayerInfo'] as Map<String, dynamic>?;
         final address = taxpayer?['pradr']?['addr'] as Map<String, dynamic>?;
-        if (taxpayer != null && taxpayer['gstin'] != null) {
+        if (taxpayer != null &&
+            taxpayer['gstin'] != null &&
+            taxpayer['pradr'] != null) {
           final addressLine =
               [address?['bno'], address?['bnm'], address?['loc']]
                   .whereType<String>()
@@ -76,9 +117,30 @@ class GstLookupService {
             address2: address?['st']?.toString(),
             city: (address?['dst'] ?? address?['city'])?.toString(),
             state: address?['stcd']?.toString(),
-            phone: address?['pncd']?.toString(),
+            phone: null,
             gstNo: taxpayer['gstin'].toString(),
             group: taxpayer['ctb']?.toString(),
+            gstStatus: taxpayer['sts']?.toString(),
+            legalName: taxpayer['lgnm']?.toString(),
+            constitution: taxpayer['ctb']?.toString(),
+            registrationDate: taxpayer['rgdt']?.toString(),
+            businessNature: taxpayer['pradr']?['ntr']?.toString(),
+            principalBuilding: address?['bno']?.toString(),
+            principalFloor: address?['flno']?.toString(),
+            principalLocation: address?['loc']?.toString(),
+            principalStreet: address?['st']?.toString(),
+            district: address?['dst']?.toString(),
+            pincode: address?['pncd']?.toString(),
+            latitude: address?['lt']?.toString(),
+            longitude: address?['lg']?.toString(),
+            tradeNature: taxpayer['nba'] is List
+                ? (taxpayer['nba'] as List).join(', ')
+                : taxpayer['nba']?.toString(),
+            stateJurisdictionCode: taxpayer['stjCd']?.toString(),
+            stateJurisdiction: taxpayer['stj']?.toString(),
+            centralJurisdictionCode: taxpayer['ctjCd']?.toString(),
+            centralJurisdiction: taxpayer['ctj']?.toString(),
+            panNo: taxpayer['panNo']?.toString(),
           );
         }
       }
@@ -126,6 +188,25 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
   final _phoneController = TextEditingController();
   final _stateController = TextEditingController();
   final _gstNoController = TextEditingController();
+  final _gstStatusController = TextEditingController();
+  final _legalNameController = TextEditingController();
+  final _constitutionController = TextEditingController();
+  final _registrationDateController = TextEditingController();
+  final _businessNatureController = TextEditingController();
+  final _buildingController = TextEditingController();
+  final _floorController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _districtController = TextEditingController();
+  final _pincodeController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
+  final _tradeNatureController = TextEditingController();
+  final _stateJurisdictionCodeController = TextEditingController();
+  final _stateJurisdictionController = TextEditingController();
+  final _centralJurisdictionCodeController = TextEditingController();
+  final _centralJurisdictionController = TextEditingController();
+  final _panController = TextEditingController();
 
   bool _isLoading = false;
   String? _statusMessage;
@@ -142,6 +223,29 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     _phoneController.dispose();
     _stateController.dispose();
     _gstNoController.dispose();
+    for (final controller in [
+      _gstStatusController,
+      _legalNameController,
+      _constitutionController,
+      _registrationDateController,
+      _businessNatureController,
+      _buildingController,
+      _floorController,
+      _locationController,
+      _streetController,
+      _districtController,
+      _pincodeController,
+      _latitudeController,
+      _longitudeController,
+      _tradeNatureController,
+      _stateJurisdictionCodeController,
+      _stateJurisdictionController,
+      _centralJurisdictionCodeController,
+      _centralJurisdictionController,
+      _panController,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -191,6 +295,27 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
         _stateController.text = details.state ?? _stateController.text;
         _phoneController.text = details.phone ?? _phoneController.text;
         _gstNoController.text = details.gstNo ?? gstin;
+        _gstStatusController.text = details.gstStatus ?? '';
+        _legalNameController.text = details.legalName ?? '';
+        _constitutionController.text = details.constitution ?? '';
+        _registrationDateController.text = details.registrationDate ?? '';
+        _businessNatureController.text = details.businessNature ?? '';
+        _buildingController.text = details.principalBuilding ?? '';
+        _floorController.text = details.principalFloor ?? '';
+        _locationController.text = details.principalLocation ?? '';
+        _streetController.text = details.principalStreet ?? '';
+        _districtController.text = details.district ?? '';
+        _pincodeController.text = details.pincode ?? '';
+        _latitudeController.text = details.latitude ?? '';
+        _longitudeController.text = details.longitude ?? '';
+        _tradeNatureController.text = details.tradeNature ?? '';
+        _stateJurisdictionCodeController.text =
+            details.stateJurisdictionCode ?? '';
+        _stateJurisdictionController.text = details.stateJurisdiction ?? '';
+        _centralJurisdictionCodeController.text =
+            details.centralJurisdictionCode ?? '';
+        _centralJurisdictionController.text = details.centralJurisdiction ?? '';
+        _panController.text = details.panNo ?? '';
         _isLoading = false;
         _statusMessage = 'GST details fetched successfully.';
         _isErrorStatus = false;
@@ -260,11 +385,35 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     _phoneController.clear();
     _stateController.clear();
     _gstNoController.clear();
+    for (final controller in [
+      _gstStatusController,
+      _legalNameController,
+      _constitutionController,
+      _registrationDateController,
+      _businessNatureController,
+      _buildingController,
+      _floorController,
+      _locationController,
+      _streetController,
+      _districtController,
+      _pincodeController,
+      _latitudeController,
+      _longitudeController,
+      _tradeNatureController,
+      _stateJurisdictionCodeController,
+      _stateJurisdictionController,
+      _centralJurisdictionCodeController,
+      _centralJurisdictionController,
+      _panController,
+    ]) {
+      controller.clear();
+    }
     _setStatus('Form cleared.', false);
   }
 
   Account _currentAccount() => Account(
     id: null,
+    firmId: FirmSession.instance.current.id,
     name: _nameController.text.trim(),
     group: _groupController.text.trim(),
     address1: _address1Controller.text.trim(),
@@ -274,6 +423,25 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     phone: _phoneController.text.trim(),
     state: _stateController.text.trim(),
     gstNo: _gstNoController.text.trim().toUpperCase(),
+    gstStatus: _gstStatusController.text.trim(),
+    legalName: _legalNameController.text.trim(),
+    constitution: _constitutionController.text.trim(),
+    registrationDate: _registrationDateController.text.trim(),
+    businessNature: _businessNatureController.text.trim(),
+    principalBuilding: _buildingController.text.trim(),
+    principalFloor: _floorController.text.trim(),
+    principalLocation: _locationController.text.trim(),
+    principalStreet: _streetController.text.trim(),
+    district: _districtController.text.trim(),
+    pincode: _pincodeController.text.trim(),
+    latitude: _latitudeController.text.trim(),
+    longitude: _longitudeController.text.trim(),
+    tradeNature: _tradeNatureController.text.trim(),
+    stateJurisdictionCode: _stateJurisdictionCodeController.text.trim(),
+    stateJurisdiction: _stateJurisdictionController.text.trim(),
+    centralJurisdictionCode: _centralJurisdictionCodeController.text.trim(),
+    centralJurisdiction: _centralJurisdictionController.text.trim(),
+    panNo: _panController.text.trim(),
   );
 
   Future<void> _handleSave() async {
@@ -299,7 +467,10 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
       _setStatus('Enter a valid GST number to find an account.', true);
       return;
     }
-    final account = await AccountService().findByGst(gstNo);
+    final account = await AccountService().findByGst(
+      gstNo,
+      firmId: FirmSession.instance.current.id,
+    );
     if (!mounted) return;
     if (account == null) {
       _setStatus('No saved account found for this GST number.', true);
@@ -315,6 +486,25 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
       _phoneController.text = account.phone;
       _stateController.text = account.state;
       _gstNoController.text = account.gstNo;
+      _gstStatusController.text = account.gstStatus;
+      _legalNameController.text = account.legalName;
+      _constitutionController.text = account.constitution;
+      _registrationDateController.text = account.registrationDate;
+      _businessNatureController.text = account.businessNature;
+      _buildingController.text = account.principalBuilding;
+      _floorController.text = account.principalFloor;
+      _locationController.text = account.principalLocation;
+      _streetController.text = account.principalStreet;
+      _districtController.text = account.district;
+      _pincodeController.text = account.pincode;
+      _latitudeController.text = account.latitude;
+      _longitudeController.text = account.longitude;
+      _tradeNatureController.text = account.tradeNature;
+      _stateJurisdictionCodeController.text = account.stateJurisdictionCode;
+      _stateJurisdictionController.text = account.stateJurisdiction;
+      _centralJurisdictionCodeController.text = account.centralJurisdictionCode;
+      _centralJurisdictionController.text = account.centralJurisdiction;
+      _panController.text = account.panNo;
       _statusMessage = 'Account loaded from database.';
       _isErrorStatus = false;
     });
@@ -344,7 +534,10 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     );
 
     if (confirmed == true) {
-      await AccountService().deleteByGst(_gstNoController.text);
+      await AccountService().deleteByGst(
+        _gstNoController.text,
+        firmId: FirmSession.instance.current.id,
+      );
       _resetForm();
       _setStatus('Account deleted.', false);
     }
@@ -360,41 +553,6 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final fields = [
-      _buildField('Name', _nameController, key: const ValueKey('nameField')),
-      _buildField('Group', _groupController, key: const ValueKey('groupField')),
-      _buildField(
-        'Address 1',
-        _address1Controller,
-        key: const ValueKey('address1Field'),
-      ),
-      _buildField(
-        'Address 2',
-        _address2Controller,
-        key: const ValueKey('address2Field'),
-      ),
-      _buildField(
-        'Delivery Address 1',
-        _deliveryAddress1Controller,
-        key: const ValueKey('deliveryAddressField'),
-      ),
-      _buildField('City', _cityController, key: const ValueKey('cityField')),
-      _buildField(
-        'Phone',
-        _phoneController,
-        key: const ValueKey('phoneField'),
-        keyboardType: TextInputType.phone,
-      ),
-      _buildField('State', _stateController, key: const ValueKey('stateField')),
-      _buildField(
-        'GST No.',
-        _gstNoController,
-        key: const ValueKey('gstNoField'),
-        textCapitalization: TextCapitalization.characters,
-        keyboardType: TextInputType.text,
-      ),
-    ];
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -421,17 +579,197 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
                 child: SingleChildScrollView(
                   child: Container(
                     padding: const EdgeInsets.all(12),
-                    color: AppColors.formBackground,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFF4F2C6), Color(0xFFE6EFEA)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        _sectionTitle(
+                          'Business identity',
+                          Icons.business_outlined,
+                        ),
+                        Wrap(
+                          spacing: 20,
+                          runSpacing: 12,
                           children: [
-                            for (final field in fields) ...[
-                              field,
-                              const SizedBox(height: 10),
-                            ],
+                            _buildField(
+                              'Name',
+                              _nameController,
+                              key: const ValueKey('nameField'),
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Legal Name',
+                              _legalNameController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Group / Type',
+                              _groupController,
+                              key: const ValueKey('groupField'),
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Constitution',
+                              _constitutionController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'GST No.',
+                              _gstNoController,
+                              key: const ValueKey('gstNoField'),
+                              width: 430,
+                              textCapitalization: TextCapitalization.characters,
+                            ),
+                            _buildField(
+                              'GST Status',
+                              _gstStatusController,
+                              width: 430,
+                            ),
+                            _buildField('PAN No.', _panController, width: 430),
+                            _buildField(
+                              'Registration Date',
+                              _registrationDateController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Business Nature',
+                              _businessNatureController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Trade Nature',
+                              _tradeNatureController,
+                              width: 430,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _sectionTitle(
+                          'Business address',
+                          Icons.location_on_outlined,
+                        ),
+                        Wrap(
+                          spacing: 20,
+                          runSpacing: 12,
+                          children: [
+                            _buildField(
+                              'Address 1',
+                              _address1Controller,
+                              key: const ValueKey('address1Field'),
+                              width: 880,
+                              maxLines: 3,
+                            ),
+                            _buildField(
+                              'Address 2',
+                              _address2Controller,
+                              key: const ValueKey('address2Field'),
+                              width: 430,
+                              maxLines: 2,
+                            ),
+                            _buildField(
+                              'Delivery Address',
+                              _deliveryAddress1Controller,
+                              key: const ValueKey('deliveryAddressField'),
+                              width: 430,
+                              maxLines: 2,
+                            ),
+                            _buildField(
+                              'Building No.',
+                              _buildingController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'Floor No.',
+                              _floorController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'Location',
+                              _locationController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'Street',
+                              _streetController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'City',
+                              _cityController,
+                              key: const ValueKey('cityField'),
+                              width: 280,
+                            ),
+                            _buildField(
+                              'District',
+                              _districtController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'State',
+                              _stateController,
+                              key: const ValueKey('stateField'),
+                              width: 280,
+                            ),
+                            _buildField(
+                              'Pincode',
+                              _pincodeController,
+                              width: 280,
+                              keyboardType: TextInputType.number,
+                            ),
+                            _buildField(
+                              'Phone / PIN',
+                              _phoneController,
+                              key: const ValueKey('phoneField'),
+                              width: 280,
+                              keyboardType: TextInputType.phone,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        _sectionTitle(
+                          'Jurisdiction and coordinates',
+                          Icons.account_tree_outlined,
+                        ),
+                        Wrap(
+                          spacing: 20,
+                          runSpacing: 12,
+                          children: [
+                            _buildField(
+                              'State Jurisdiction Code',
+                              _stateJurisdictionCodeController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'State Jurisdiction',
+                              _stateJurisdictionController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Central Jurisdiction Code',
+                              _centralJurisdictionCodeController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Central Jurisdiction',
+                              _centralJurisdictionController,
+                              width: 430,
+                            ),
+                            _buildField(
+                              'Latitude',
+                              _latitudeController,
+                              width: 280,
+                            ),
+                            _buildField(
+                              'Longitude',
+                              _longitudeController,
+                              width: 280,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -541,45 +879,62 @@ class _AccountMasterPageState extends State<AccountMasterPage> {
     );
   }
 
+  Widget _sectionTitle(String title, IconData icon) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
+
   Widget _buildField(
     String label,
     TextEditingController controller, {
     Key? key,
+    double width = 430,
+    int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return SizedBox(
-      width: 290,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      width: width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 108,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              key: key,
-              controller: controller,
-              keyboardType: keyboardType,
-              textCapitalization: textCapitalization,
-              decoration: const InputDecoration(
-                isDense: true,
-                filled: true,
-                fillColor: AppColors.inputBackground,
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
+          const SizedBox(height: 5),
+          TextField(
+            key: key,
+            controller: controller,
+            keyboardType: keyboardType,
+            textCapitalization: textCapitalization,
+            maxLines: maxLines,
+            minLines: maxLines > 1 ? 2 : 1,
+            decoration: const InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: AppColors.inputBackground,
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 11,
               ),
             ),
           ),

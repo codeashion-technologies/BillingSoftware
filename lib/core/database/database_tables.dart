@@ -33,6 +33,7 @@ abstract final class DatabaseTables {
       '''
     CREATE TABLE IF NOT EXISTS ${DatabaseConstants.accountsTable} (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firm_id INTEGER NOT NULL DEFAULT 0,
       name TEXT NOT NULL,
       group_name TEXT NOT NULL DEFAULT '',
       address1 TEXT NOT NULL DEFAULT '',
@@ -41,7 +42,27 @@ abstract final class DatabaseTables {
       city TEXT NOT NULL DEFAULT '',
       phone TEXT NOT NULL DEFAULT '',
       state TEXT NOT NULL DEFAULT '',
-      gst_no TEXT NOT NULL UNIQUE
+      gst_no TEXT NOT NULL,
+      gst_status TEXT NOT NULL DEFAULT '',
+      taxpayer_legal_name TEXT NOT NULL DEFAULT '',
+      constitution TEXT NOT NULL DEFAULT '',
+      registration_date TEXT NOT NULL DEFAULT '',
+      business_nature TEXT NOT NULL DEFAULT '',
+      principal_building TEXT NOT NULL DEFAULT '',
+      principal_floor TEXT NOT NULL DEFAULT '',
+      principal_location TEXT NOT NULL DEFAULT '',
+      principal_street TEXT NOT NULL DEFAULT '',
+      district TEXT NOT NULL DEFAULT '',
+      pincode TEXT NOT NULL DEFAULT '',
+      latitude TEXT NOT NULL DEFAULT '',
+      longitude TEXT NOT NULL DEFAULT '',
+      trade_nature TEXT NOT NULL DEFAULT '',
+      state_jurisdiction_code TEXT NOT NULL DEFAULT '',
+      state_jurisdiction TEXT NOT NULL DEFAULT '',
+      central_jurisdiction_code TEXT NOT NULL DEFAULT '',
+      central_jurisdiction TEXT NOT NULL DEFAULT '',
+      pan_no TEXT NOT NULL DEFAULT '',
+      UNIQUE(firm_id, gst_no)
     )
   ''';
 }

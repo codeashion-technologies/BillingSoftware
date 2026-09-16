@@ -10,12 +10,13 @@ class AccountService {
 
   final DatabaseHelper _databaseHelper;
 
-  Future<Account?> findByGst(String gstNo) async {
+  Future<Account?> findByGst(String gstNo, {int firmId = 0}) async {
     final database = await _databaseHelper.database;
+    firmId = await _resolveFirmId(database, firmId);
     final rows = await database.query(
       DatabaseConstants.accountsTable,
-      where: 'gst_no = ?',
-      whereArgs: [gstNo.trim().toUpperCase()],
+      where: 'gst_no = ? AND firm_id = ?',
+      whereArgs: [gstNo.trim().toUpperCase(), firmId],
       limit: 1,
     );
     await _databaseHelper.close();
@@ -24,21 +25,44 @@ class AccountService {
 
   Future<void> save(Account account) async {
     final database = await _databaseHelper.database;
-    await database.insert(
+    var firmId = account.firmId;
+    if (firmId == 0) {
+      final firmRows = await database.query(
+        DatabaseConstants.firmsTable,
+        columns: ['id'],
+        where: 'firm_code = ?',
+        whereArgs: ['3723'],
+        limit: 1,
+      );
+      if (firmRows.isNotEmpty) firmId = firmRows.first['id'] as int;
+    }
+    await database.insert(DatabaseConstants.accountsTable, {
+      ...account.toMap(),
+      'firm_id': firmId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await _databaseHelper.close();
+  }
+
+  Future<void> deleteByGst(String gstNo, {int firmId = 0}) async {
+    final database = await _databaseHelper.database;
+    firmId = await _resolveFirmId(database, firmId);
+    await database.delete(
       DatabaseConstants.accountsTable,
-      account.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      where: 'gst_no = ? AND firm_id = ?',
+      whereArgs: [gstNo.trim().toUpperCase(), firmId],
     );
     await _databaseHelper.close();
   }
 
-  Future<void> deleteByGst(String gstNo) async {
-    final database = await _databaseHelper.database;
-    await database.delete(
-      DatabaseConstants.accountsTable,
-      where: 'gst_no = ?',
-      whereArgs: [gstNo.trim().toUpperCase()],
+  Future<int> _resolveFirmId(Database database, int firmId) async {
+    if (firmId != 0) return firmId;
+    final rows = await database.query(
+      DatabaseConstants.firmsTable,
+      columns: ['id'],
+      where: 'firm_code = ?',
+      whereArgs: ['3723'],
+      limit: 1,
     );
-    await _databaseHelper.close();
+    return rows.isEmpty ? 0 : rows.first['id'] as int;
   }
 }
