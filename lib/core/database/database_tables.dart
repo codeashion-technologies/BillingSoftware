@@ -17,4 +17,15 @@ abstract final class DatabaseTables {
       password TEXT NOT NULL
     )
   ''';
+
+  static const firms =
+      '''
+    CREATE TABLE IF NOT EXISTS ${DatabaseConstants.firmsTable} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      firm_code TEXT NOT NULL UNIQUE,
+      firm_name TEXT NOT NULL,
+      financial_year TEXT NOT NULL,
+      area TEXT NOT NULL DEFAULT ''
+    )
+  ''';
 }

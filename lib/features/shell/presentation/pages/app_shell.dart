@@ -4,8 +4,10 @@ import '../../../../app/router/navigation_config.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_status_bar.dart';
+import '../../../../core/services/firm_session.dart';
+import '../../../../shared/models/firm.dart';
 import '../../../authentication/presentation/widgets/change_password_dialog.dart';
-import '../../../../shared/models/company_profile.dart';
+import '../widgets/firm_dialogs.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({required this.title, required this.child, super.key});
@@ -39,23 +41,26 @@ class _InformationBar extends StatelessWidget {
   const _InformationBar();
 
   @override
-  Widget build(BuildContext context) {
-    const profile = CompanyProfile.defaults;
-    return Container(
-      height: 25,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      color: AppColors.header,
-      alignment: Alignment.centerLeft,
-      child: Text(
-        '(${profile.financialYear}) - ${profile.softwareCompanyName}    '
-        'MILL Base Id: ${profile.millBaseId}    '
-        'Client Name: ${profile.clientName}    Area: ${profile.area}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: FirmSession.instance,
+    builder: (context, _) {
+      final profile = FirmSession.instance.current;
+      return Container(
+        height: 25,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        color: AppColors.header,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          '(${profile.financialYear}) - CODEASHION TECHNOLOGIES    '
+          'MILL Base Id: ${profile.code}    '
+          'Client Name: ${profile.name}    Area: ${profile.area}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
+        ),
+      );
+    },
+  );
 }
 
 class _TopMenu extends StatelessWidget {
@@ -127,6 +132,21 @@ class _TopMenu extends StatelessWidget {
             showDialog<bool>(
               context: context,
               builder: (_) => const ChangePasswordDialog(),
+            );
+          } else if (item.title == 'New User') {
+            showDialog<Firm>(
+              context: context,
+              builder: (_) => const NewFirmDialog(),
+            );
+          } else if (item.title == 'Edit User') {
+            showDialog<bool>(
+              context: context,
+              builder: (_) => const EditFirmDialog(),
+            );
+          } else if (item.title == 'Firm Select') {
+            showDialog<Firm>(
+              context: context,
+              builder: (_) => const FirmSelectDialog(),
             );
           }
         },
