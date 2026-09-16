@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../../../app/router/navigation_config.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../../../core/services/firm_session.dart';
 import '../../../../shared/models/firm.dart';
 import '../../../authentication/presentation/widgets/change_password_dialog.dart';
 import '../widgets/firm_dialogs.dart';
+import '../widgets/year_select_dialog.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({required this.title, required this.child, super.key});
@@ -148,6 +150,13 @@ class _TopMenu extends StatelessWidget {
               context: context,
               builder: (_) => const FirmSelectDialog(),
             );
+          } else if (item.title == 'Year Select') {
+            showDialog<String>(
+              context: context,
+              builder: (_) => const YearSelectDialog(),
+            );
+          } else if (item.title == 'Exit') {
+            _confirmExit(context);
           }
         },
         child: label,
@@ -160,6 +169,30 @@ class _TopMenu extends StatelessWidget {
           .toList(),
       child: label,
     );
+  }
+
+  Future<void> _confirmExit(BuildContext context) async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Exit Billing Software'),
+        content: const Text('Are you sure you want to exit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            icon: const Icon(Icons.exit_to_app),
+            label: const Text('Exit'),
+          ),
+        ],
+      ),
+    );
+    if (shouldExit == true) {
+      await windowManager.close();
+    }
   }
 }
 

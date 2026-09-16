@@ -65,4 +65,19 @@ class FirmService {
     );
     await _databaseHelper.close();
   }
+
+  Future<void> updateFinancialYear({
+    required int firmId,
+    required String firmCode,
+    required String financialYear,
+  }) async {
+    final database = await _databaseHelper.database;
+    await database.update(
+      DatabaseConstants.firmsTable,
+      {'financial_year': financialYear.trim()},
+      where: 'id = ? OR firm_code = ?',
+      whereArgs: [firmId, firmCode.trim()],
+    );
+    await _databaseHelper.close();
+  }
 }

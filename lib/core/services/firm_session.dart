@@ -21,4 +21,15 @@ class FirmSession extends ChangeNotifier {
     _current = firm;
     notifyListeners();
   }
+
+  void selectYear(String financialYear) {
+    _current = Firm(
+      id: _current.id,
+      code: _current.code,
+      name: _current.name,
+      financialYear: financialYear,
+      area: _current.area,
+    );
+    notifyListeners();
+  }
 }
