@@ -341,7 +341,22 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
     setText(_lrNoController, header['lr_no']);
     setText(_tampoNoController, header['tampo_no']);
     setText(_transportController, header['transport']);
+    final savedLotDate = DateTime.tryParse(header['lot_date'] as String? ?? '');
+    final savedPurchaseBillDate = DateTime.tryParse(
+      header['purchase_bill_date'] as String? ?? '',
+    );
     setState(() {
+      if (savedLotDate != null) {
+        _lotDate = savedLotDate;
+        _setDate(_lotDateController, savedLotDate);
+      }
+      if (savedPurchaseBillDate != null) {
+        _purBillDate = savedPurchaseBillDate;
+        _setDate(_purBillDateController, savedPurchaseBillDate);
+      }
+      _onlyPending = header['only_pending'] == 1;
+      _jobCard = header['job_card'] == 1;
+      _special = header['special'] == 1;
       _details
         ..clear()
         ..addAll(
