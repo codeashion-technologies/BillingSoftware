@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:sqflite_common_ffi/sqflite_common_ffi.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/database_constants.dart';
+import '../../../../core/database/database_helper.dart';
 
 class JobWorkReceivePage extends StatefulWidget {
   const JobWorkReceivePage({super.key});
@@ -16,6 +21,22 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
   final _weightController = TextEditingController();
   final _markaController = TextEditingController();
   final _remarksController = TextEditingController();
+  final _bookController = TextEditingController();
+  final _lotNoController = TextEditingController();
+  final _jobProcessController = TextEditingController();
+  final _partyController = TextEditingController();
+  final _purchasePartyController = TextEditingController();
+  final _brokerController = TextEditingController();
+  final _partyChallanController = TextEditingController();
+  final _purchaseBillNoController = TextEditingController();
+  final _jobRateController = TextEditingController();
+  final _grayRateController = TextEditingController();
+  final _jobWorkNoController = TextEditingController();
+  final _qualityController = TextEditingController();
+  final _bottomRemarksController = TextEditingController();
+  final _lrNoController = TextEditingController();
+  final _tampoNoController = TextEditingController();
+  final _transportController = TextEditingController();
   final _weightFocusNode = FocusNode();
   final _markaFocusNode = FocusNode();
   final _remarksFocusNode = FocusNode();
@@ -29,6 +50,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
   bool _jobCard = false;
   bool _special = false;
   String? _message;
+  final _databaseHelper = DatabaseHelper();
 
   double get _totalMeters => _details.fold(0, (sum, row) => sum + row.meters);
   double get _totalWeight => _details.fold(0, (sum, row) => sum + row.weight);
@@ -48,6 +70,26 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
     _weightController.dispose();
     _markaController.dispose();
     _remarksController.dispose();
+    for (final controller in [
+      _bookController,
+      _lotNoController,
+      _jobProcessController,
+      _partyController,
+      _purchasePartyController,
+      _brokerController,
+      _partyChallanController,
+      _purchaseBillNoController,
+      _jobRateController,
+      _grayRateController,
+      _jobWorkNoController,
+      _qualityController,
+      _bottomRemarksController,
+      _lrNoController,
+      _tampoNoController,
+      _transportController,
+    ]) {
+      controller.dispose();
+    }
     _weightFocusNode.dispose();
     _markaFocusNode.dispose();
     _remarksFocusNode.dispose();
@@ -116,23 +158,24 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
     _detailsFocusNode.requestFocus();
   }
 
-  void _deleteSelected() {
-    if (_selectedRow == null) {
-      setState(() => _message = 'Select a detail row to delete');
-      return;
-    }
-    setState(() {
-      _details.removeAt(_selectedRow!);
-      for (var index = 0; index < _details.length; index++) {
-        _details[index] = _details[index].copyWith(serialNo: index + 1);
-      }
-      _selectedRow = null;
-      _message = 'Detail deleted';
-    });
-  }
-
   void _newTransaction() {
     for (final controller in [
+      _bookController,
+      _lotNoController,
+      _jobProcessController,
+      _partyController,
+      _purchasePartyController,
+      _brokerController,
+      _partyChallanController,
+      _purchaseBillNoController,
+      _jobRateController,
+      _grayRateController,
+      _jobWorkNoController,
+      _qualityController,
+      _bottomRemarksController,
+      _lrNoController,
+      _tampoNoController,
+      _transportController,
       _metersController,
       _weightController,
       _markaController,
@@ -152,6 +195,243 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
   }
 
   void _showMessage(String message) => setState(() => _message = message);
+
+  Future<void> _save() async {
+    final lotNo = _lotNoController.text.trim();
+    if (lotNo.isEmpty) return _showMessage('Lot No is required');
+    if (_details.isEmpty) return _showMessage('Add at least one detail row');
+    try {
+      final database = await _databaseHelper.database;
+      await database.transaction((txn) async {
+        await _createTables(txn);
+        final header = _headerValues(lotNo);
+        final existing = await txn.query(
+          DatabaseConstants.jobWorkReceiveHeadersTable,
+          where: 'lot_no = ?',
+          whereArgs: [lotNo],
+          limit: 1,
+        );
+        int headerId;
+        if (existing.isEmpty) {
+          headerId = await txn.insert(
+            DatabaseConstants.jobWorkReceiveHeadersTable,
+            header,
+          );
+        } else {
+          headerId = existing.first['id']! as int;
+          await txn.update(
+            DatabaseConstants.jobWorkReceiveHeadersTable,
+            header,
+            where: 'lot_no = ?',
+            whereArgs: [lotNo],
+          );
+        }
+        await txn.delete(
+          DatabaseConstants.jobWorkReceiveDetailsTable,
+          where: 'receive_id = ?',
+          whereArgs: [headerId],
+        );
+        for (final row in _details) {
+          await txn.insert(DatabaseConstants.jobWorkReceiveDetailsTable, {
+            'receive_id': headerId,
+            'sr_no': row.serialNo,
+            'meters': row.meters,
+            'weight': row.weight,
+            'marka': row.marka,
+            'remarks': row.remarks,
+            'is_finished': row.isFinished ? 1 : 0,
+          });
+        }
+      });
+      _showMessage('Bill saved for Lot No $lotNo');
+    } on DatabaseException catch (error) {
+      _showMessage('Could not save bill: $error');
+    }
+  }
+
+  Map<String, Object?> _headerValues(String lotNo) => {
+    'lot_no': lotNo,
+    'book': _bookController.text.trim(),
+    'lot_date': _lotDate.toIso8601String(),
+    'job_process': _jobProcessController.text.trim(),
+    'party': _partyController.text.trim(),
+    'purchase_party': _purchasePartyController.text.trim(),
+    'broker': _brokerController.text.trim(),
+    'party_challan_no': _partyChallanController.text.trim(),
+    'purchase_bill_no': _purchaseBillNoController.text.trim(),
+    'purchase_bill_date': _purBillDate.toIso8601String(),
+    'job_rate': double.tryParse(_jobRateController.text) ?? 0,
+    'gray_rate': double.tryParse(_grayRateController.text) ?? 0,
+    'job_work_no': _jobWorkNoController.text.trim(),
+    'quality': _qualityController.text.trim(),
+    'remarks': _bottomRemarksController.text.trim(),
+    'lr_no': _lrNoController.text.trim(),
+    'tampo_no': _tampoNoController.text.trim(),
+    'transport': _transportController.text.trim(),
+    'only_pending': _onlyPending ? 1 : 0,
+    'job_card': _jobCard ? 1 : 0,
+    'special': _special ? 1 : 0,
+    'total_meters': _totalMeters,
+    'total_weight': _totalWeight,
+    'created_at': DateTime.now().toIso8601String(),
+  };
+
+  Future<void> _find() async {
+    final lotNo = _lotNoController.text.trim();
+    if (lotNo.isEmpty) return _showMessage('Enter Lot No to find');
+    final database = await _databaseHelper.database;
+    await _createTables(database);
+    final rows = await database.query(
+      DatabaseConstants.jobWorkReceiveHeadersTable,
+      where: 'lot_no = ?',
+      whereArgs: [lotNo],
+      limit: 1,
+    );
+    if (rows.isEmpty) return _showMessage('Lot No $lotNo not found');
+    final header = rows.first;
+    final details = await database.query(
+      DatabaseConstants.jobWorkReceiveDetailsTable,
+      where: 'receive_id = ?',
+      whereArgs: [header['id']],
+      orderBy: 'sr_no',
+    );
+    void setText(TextEditingController controller, Object? value) {
+      controller.text = value?.toString() ?? '';
+    }
+
+    setText(_bookController, header['book']);
+    setText(_jobProcessController, header['job_process']);
+    setText(_partyController, header['party']);
+    setText(_purchasePartyController, header['purchase_party']);
+    setText(_brokerController, header['broker']);
+    setText(_partyChallanController, header['party_challan_no']);
+    setText(_purchaseBillNoController, header['purchase_bill_no']);
+    setText(_jobRateController, header['job_rate']);
+    setText(_grayRateController, header['gray_rate']);
+    setText(_jobWorkNoController, header['job_work_no']);
+    setText(_qualityController, header['quality']);
+    setText(_bottomRemarksController, header['remarks']);
+    setText(_lrNoController, header['lr_no']);
+    setText(_tampoNoController, header['tampo_no']);
+    setText(_transportController, header['transport']);
+    setState(() {
+      _details
+        ..clear()
+        ..addAll(
+          details.map(
+            (row) => _ReceiveDetail(
+              serialNo: row['sr_no']! as int,
+              meters: (row['meters']! as num).toDouble(),
+              weight: (row['weight']! as num).toDouble(),
+              marka: row['marka']! as String,
+              remarks: row['remarks']! as String,
+              isFinished: row['is_finished'] == 1,
+            ),
+          ),
+        );
+      _message = 'Bill loaded for Lot No $lotNo';
+    });
+  }
+
+  Future<void> _deleteBill() async {
+    final lotNo = _lotNoController.text.trim();
+    if (lotNo.isEmpty) return _showMessage('Enter Lot No to delete');
+    final database = await _databaseHelper.database;
+    await _createTables(database);
+    final headers = await database.query(
+      DatabaseConstants.jobWorkReceiveHeadersTable,
+      columns: ['id'],
+      where: 'lot_no = ?',
+      whereArgs: [lotNo],
+      limit: 1,
+    );
+    if (headers.isEmpty) return _showMessage('Lot No $lotNo not found');
+    final headerId = headers.first['id'];
+    await database.delete(
+      DatabaseConstants.jobWorkReceiveDetailsTable,
+      where: 'receive_id = ?',
+      whereArgs: [headerId],
+    );
+    final deleted = await database.delete(
+      DatabaseConstants.jobWorkReceiveHeadersTable,
+      where: 'lot_no = ?',
+      whereArgs: [lotNo],
+    );
+    if (deleted == 0) return _showMessage('Lot No $lotNo not found');
+    _newTransaction();
+    _showMessage('Bill deleted for Lot No $lotNo');
+  }
+
+  Future<void> _printBill() async {
+    final lotNo = _lotNoController.text.trim();
+    if (lotNo.isEmpty) return _showMessage('Enter Lot No to print');
+    final database = await _databaseHelper.database;
+    await _createTables(database);
+    final headers = await database.query(
+      DatabaseConstants.jobWorkReceiveHeadersTable,
+      where: 'lot_no = ?',
+      whereArgs: [lotNo],
+      limit: 1,
+    );
+    if (headers.isEmpty) return _showMessage('Lot No $lotNo not found');
+    final header = headers.first;
+    final lines = await database.query(
+      DatabaseConstants.jobWorkReceiveDetailsTable,
+      where: 'receive_id = ?',
+      whereArgs: [header['id']],
+      orderBy: 'sr_no',
+    );
+    final document = pw.Document();
+    document.addPage(
+      pw.Page(
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'JOB WORK RECEIVE TO MILL',
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Lot No: $lotNo    Party: ${header['party']}    Quality: ${header['quality']}',
+            ),
+            pw.Text(
+              'Party Challan No: ${header['party_challan_no']}    Job Work No: ${header['job_work_no']}',
+            ),
+            pw.SizedBox(height: 12),
+            pw.TableHelper.fromTextArray(
+              headers: const ['Sr No', 'Meters', 'Weight', 'Marka', 'Remarks'],
+              data: lines
+                  .map(
+                    (row) => [
+                      row['sr_no'],
+                      row['meters'],
+                      row['weight'],
+                      row['marka'],
+                      row['remarks'],
+                    ],
+                  )
+                  .toList(),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Total Meters: ${header['total_meters']}    Total Weight: ${header['total_weight']}',
+            ),
+          ],
+        ),
+      ),
+    );
+    await Printing.layoutPdf(onLayout: (_) async => document.save());
+  }
+
+  Future<void> _createTables(DatabaseExecutor database) async {
+    await database.execute(
+      'CREATE TABLE IF NOT EXISTS ${DatabaseConstants.jobWorkReceiveHeadersTable} (id INTEGER PRIMARY KEY AUTOINCREMENT, lot_no TEXT NOT NULL UNIQUE, book TEXT NOT NULL DEFAULT \'\', lot_date TEXT NOT NULL, job_process TEXT NOT NULL DEFAULT \'\', party TEXT NOT NULL DEFAULT \'\', purchase_party TEXT NOT NULL DEFAULT \'\', broker TEXT NOT NULL DEFAULT \'\', party_challan_no TEXT NOT NULL DEFAULT \'\', purchase_bill_no TEXT NOT NULL DEFAULT \'\', purchase_bill_date TEXT NOT NULL, job_rate REAL NOT NULL DEFAULT 0, gray_rate REAL NOT NULL DEFAULT 0, job_work_no TEXT NOT NULL DEFAULT \'\', quality TEXT NOT NULL DEFAULT \'\', remarks TEXT NOT NULL DEFAULT \'\', lr_no TEXT NOT NULL DEFAULT \'\', tampo_no TEXT NOT NULL DEFAULT \'\', transport TEXT NOT NULL DEFAULT \'\', only_pending INTEGER NOT NULL DEFAULT 0, job_card INTEGER NOT NULL DEFAULT 0, special INTEGER NOT NULL DEFAULT 0, total_meters REAL NOT NULL DEFAULT 0, total_weight REAL NOT NULL DEFAULT 0, created_at TEXT NOT NULL)',
+    );
+    await database.execute(
+      'CREATE TABLE IF NOT EXISTS ${DatabaseConstants.jobWorkReceiveDetailsTable} (id INTEGER PRIMARY KEY AUTOINCREMENT, receive_id INTEGER NOT NULL, sr_no INTEGER NOT NULL, meters REAL NOT NULL, weight REAL NOT NULL DEFAULT 0, marka TEXT NOT NULL DEFAULT \'\', remarks TEXT NOT NULL DEFAULT \'\', is_finished INTEGER NOT NULL DEFAULT 0)',
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -178,30 +458,34 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
                   spacing: 10,
                   runSpacing: 3,
                   children: [
-                    _headerField('Book', 225),
-                    _headerField('Lot No', 170),
+                    _headerField('Book', 225, _bookController),
+                    _headerField('Lot No', 170, _lotNoController),
                     _headerDateField(
                       'Lot Date',
                       _lotDateController,
                       () => _pickDate(lotDate: true),
                       175,
                     ),
-                    _headerField('Job Process', 220),
-                    _headerField('Party', 190),
-                    _headerField('Purchase Party', 225),
-                    _headerField('Broker', 220),
-                    _headerField('Party Ch. No', 170),
-                    _headerField('Pur Bill No', 175),
+                    _headerField('Job Process', 220, _jobProcessController),
+                    _headerField('Party', 190, _partyController),
+                    _headerField(
+                      'Purchase Party',
+                      225,
+                      _purchasePartyController,
+                    ),
+                    _headerField('Broker', 220, _brokerController),
+                    _headerField('Party Ch. No', 170, _partyChallanController),
+                    _headerField('Pur Bill No', 175, _purchaseBillNoController),
                     _headerDateField(
                       'Pur Bill Date',
                       _purBillDateController,
                       () => _pickDate(lotDate: false),
                       175,
                     ),
-                    _headerField('Job Rate', 145),
-                    _headerField('Gray Rate', 145),
-                    _headerField('JobWork No', 165),
-                    _headerField('Quality', 205),
+                    _headerField('Job Rate', 145, _jobRateController),
+                    _headerField('Gray Rate', 145, _grayRateController),
+                    _headerField('JobWork No', 165, _jobWorkNoController),
+                    _headerField('Quality', 205, _qualityController),
                   ],
                 ),
                 const SizedBox(height: 5),
@@ -291,8 +575,14 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
 
   Widget _fieldGap() => const SizedBox(height: 3);
 
-  Widget _headerField(String label, double width) =>
-      SizedBox(width: width, child: _labelledTextField(label));
+  Widget _headerField(
+    String label,
+    double width,
+    TextEditingController controller,
+  ) => SizedBox(
+    width: width,
+    child: _labelledTextField(label, controller: controller),
+  );
 
   Widget _headerDateField(
     String label,
@@ -304,7 +594,8 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
     child: _dateField(label, controller, onTap, expand: false),
   );
 
-  Widget _field(String label) => Expanded(child: _labelledTextField(label));
+  Widget _field(String label, TextEditingController controller) =>
+      Expanded(child: _labelledTextField(label, controller: controller));
 
   Widget _entryField(
     String label,
@@ -509,11 +800,20 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
     children: [
       Expanded(
         flex: 3,
+
         child: Column(
           children: [
-            _fieldRow([_field('Remarks (F9)'), _field('L.R No')]),
+            _fieldRow([
+              _field('Remarks (F9)', _bottomRemarksController),
+              SizedBox(width: 8),
+              _field('L.R No', _lrNoController),
+            ]),
             _fieldGap(),
-            _fieldRow([_field('Tampo No'), _field('Transport')]),
+            _fieldRow([
+              _field('Tampo No', _tampoNoController),
+              SizedBox(width: 8),
+              _field('Transport', _transportController),
+            ]),
           ],
         ),
       ),
@@ -526,6 +826,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
             _fieldGap(),
             _fieldRow([
               Expanded(child: _readOnlyTotal('Job Amount', '0.00')),
+              SizedBox(width: 8),
               Expanded(child: _readOnlyTotal('Gray Amount', '0.00')),
             ]),
           ],
@@ -534,6 +835,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       const SizedBox(width: 8),
       SizedBox(
         width: 92,
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -575,6 +877,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
                 onChanged: (next) => onChanged(next ?? false),
               ),
             ),
+            SizedBox(width: 6),
             Expanded(
               child: Text(
                 label,
@@ -598,11 +901,15 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       children: ['New', 'Find', 'Save', 'Cancel', 'Delete', 'Print', 'Exit']
           .map(
             (label) => OutlinedButton.icon(
-              onPressed: label == 'New'
-                  ? _newTransaction
-                  : label == 'Delete'
-                  ? _deleteSelected
-                  : () => _showMessage('$label selected'),
+              onPressed: switch (label) {
+                'New' => _newTransaction,
+                'Find' => _find,
+                'Save' => _save,
+                'Delete' => _deleteBill,
+                'Cancel' => _newTransaction,
+                'Print' => _printBill,
+                _ => () => _showMessage('$label selected'),
+              },
               icon: Icon(_icon(label), size: 12),
               label: Text(label, style: const TextStyle(fontSize: 10)),
               style: OutlinedButton.styleFrom(
@@ -693,7 +1000,7 @@ class _DataCell extends StatelessWidget {
         text,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 10),
+        style: const TextStyle(fontSize: 10, color: Colors.white),
       ),
     );
     return width == null
