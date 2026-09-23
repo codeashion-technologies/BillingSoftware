@@ -196,6 +196,32 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
 
   void _showMessage(String message) => setState(() => _message = message);
 
+  Future<void> _showLotNotFound(String lotNo) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Lot Not Found'),
+          ],
+        ),
+        content: Text(
+          'Lot No $lotNo is not available in the database.',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _save() async {
     final lotNo = _lotNoController.text.trim();
     if (lotNo.isEmpty) return _showMessage('Lot No is required');
@@ -243,6 +269,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
           });
         }
       });
+      _newTransaction();
       _showMessage('Bill saved for Lot No $lotNo');
     } on DatabaseException catch (error) {
       _showMessage('Could not save bill: $error');
@@ -287,7 +314,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       whereArgs: [lotNo],
       limit: 1,
     );
-    if (rows.isEmpty) return _showMessage('Lot No $lotNo not found');
+    if (rows.isEmpty) return _showLotNotFound(lotNo);
     final header = rows.first;
     final details = await database.query(
       DatabaseConstants.jobWorkReceiveDetailsTable,
@@ -336,6 +363,25 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
   Future<void> _deleteBill() async {
     final lotNo = _lotNoController.text.trim();
     if (lotNo.isEmpty) return _showMessage('Enter Lot No to delete');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: Text('Do you want to delete Lot No $lotNo?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('No'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Yes, Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     final database = await _databaseHelper.database;
     await _createTables(database);
     final headers = await database.query(
@@ -345,7 +391,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       whereArgs: [lotNo],
       limit: 1,
     );
-    if (headers.isEmpty) return _showMessage('Lot No $lotNo not found');
+    if (headers.isEmpty) return _showLotNotFound(lotNo);
     final headerId = headers.first['id'];
     await database.delete(
       DatabaseConstants.jobWorkReceiveDetailsTable,
@@ -357,7 +403,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       where: 'lot_no = ?',
       whereArgs: [lotNo],
     );
-    if (deleted == 0) return _showMessage('Lot No $lotNo not found');
+    if (deleted == 0) return _showLotNotFound(lotNo);
     _newTransaction();
     _showMessage('Bill deleted for Lot No $lotNo');
   }
@@ -373,7 +419,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
       whereArgs: [lotNo],
       limit: 1,
     );
-    if (headers.isEmpty) return _showMessage('Lot No $lotNo not found');
+    if (headers.isEmpty) return _showLotNotFound(lotNo);
     final header = headers.first;
     final lines = await database.query(
       DatabaseConstants.jobWorkReceiveDetailsTable,
@@ -533,6 +579,7 @@ class _JobWorkReceivePageState extends State<JobWorkReceivePage> {
                     ),
                   ),
                 ),
+                SizedBox(height: 8),
                 _actionBar(),
               ],
             ),
